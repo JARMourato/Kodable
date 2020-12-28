@@ -1,0 +1,18 @@
+cyclomatic_complexity: 12
+file_length: 200
+function_body_length: 80
+function_parameter_count: 8
+line_length: 175
+type_body_length: 300
+
+excluded:
+  - Tests
+  - DerivedData
+  - .build
+
+disabled_rules:
+  - force_cast
+  - trailing_comma
+  - opening_brace
+  - identifier_name
+  - type_name
