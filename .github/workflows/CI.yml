@@ -28,5 +28,3 @@ jobs:
       run: xcrun llvm-cov export -format="lcov" .build/debug/${{ env.PACKAGE_NAME }}PackageTests.xctest/Contents/MacOS/${{ env.PACKAGE_NAME }}PackageTests -instr-profile .build/debug/codecov/default.profdata > info.lcov
     - name: Upload to CodeCov.io
       run: bash <(curl https://codecov.io/bash)
-      env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
