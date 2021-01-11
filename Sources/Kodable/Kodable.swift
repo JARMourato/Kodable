@@ -20,7 +20,7 @@ public protocol Dekodable: Decodable {
     mutating func decode(from decoder: Decoder) throws
 }
 
-extension Dekodable {
+public extension Dekodable {
     init(from decoder: Decoder) throws {
         self.init()
         try decode(from: decoder)
@@ -74,7 +74,7 @@ extension Dekodable {
 /// Adds functionalities on top of `Encodable`
 public protocol Enkodable: Encodable {}
 
-extension Enkodable {
+public extension Enkodable {
     // MARK: Main Encoding Logic
 
     func encode(to encoder: Encoder) throws {
