@@ -15,7 +15,7 @@ protocol EncodableProperty {
 // MARK: Extended Decodable protocol
 
 /// Adds functionalities on top of `Decodable`
-protocol Dekodable: Decodable {
+public protocol Dekodable: Decodable {
     init()
     mutating func decode(from decoder: Decoder) throws
 }
@@ -72,7 +72,7 @@ extension Dekodable {
 // MARK: Extended Encodable Protocol
 
 /// Adds functionalities on top of `Encodable`
-protocol Enkodable: Encodable {}
+public protocol Enkodable: Encodable {}
 
 extension Enkodable {
     // MARK: Main Encoding Logic
@@ -105,4 +105,4 @@ extension Enkodable {
 
 // MARK: Enhanced Foundation Codable
 
-typealias Kodable = Dekodable & Enkodable
+public typealias Kodable = Dekodable & Enkodable
