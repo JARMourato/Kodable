@@ -19,7 +19,7 @@ public protocol KodableTransform {
     internal var _value: T.To?
     private let modifiers: [KodableModifier<TargetType>]
     public private(set) var key: String?
-    
+
     public typealias OriginalType = T.From
     public typealias TargetType = T.To
 
@@ -45,7 +45,7 @@ public protocol KodableTransform {
     public init() {
         modifiers = []
     }
-    
+
     /// - Parameters:
     ///   - key: Customize the string key used to decode the value. Nested values are supported through the usage of the `.` notation.
     public convenience init(_ key: String? = nil, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {

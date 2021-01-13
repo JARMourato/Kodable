@@ -9,11 +9,11 @@ import Foundation
         get { super.wrappedValue }
         set { super.wrappedValue = newValue }
     }
-    
+
     public convenience init(_ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
         self.init(key: nil, modifiers: modifiers, defaultValue: value)
     }
-    
+
     /// - Parameters:
     ///   - key: Customize the string key used to decode the value. Nested values are supported through the usage of the `.` notation.
     public convenience init(_ key: String, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {

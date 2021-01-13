@@ -17,7 +17,7 @@ import Foundation
     override public init() {
         super.init()
     }
-    
+
     public init(_ modifiers: KodableModifier<T>..., default value: T? = nil) {
         super.init(key: nil, modifiers: modifiers, defaultValue: value)
     }
