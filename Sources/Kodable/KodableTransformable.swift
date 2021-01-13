@@ -18,7 +18,8 @@ public protocol KodableTransform {
     internal var transformer = T()
     internal var _value: T.To?
     private let modifiers: [KodableModifier<TargetType>]
-
+    public private(set) var key: String?
+    
     public typealias OriginalType = T.From
     public typealias TargetType = T.To
 
@@ -33,9 +34,10 @@ public protocol KodableTransform {
         set { _value = newValue }
     }
 
-    internal init(_ modifiers: [KodableModifier<TargetType>], default value: TargetType?) {
+    internal init(key: String? = nil, modifiers: [KodableModifier<TargetType>], defaultValue: TargetType?) {
+        self.key = key
         self.modifiers = modifiers
-        _value = value
+        _value = defaultValue
     }
 
     // MARK: Public Initializers
@@ -43,9 +45,11 @@ public protocol KodableTransform {
     public init() {
         modifiers = []
     }
-
-    public convenience init(_ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
-        self.init(modifiers, default: value)
+    
+    /// - Parameters:
+    ///   - key: Customize the string key used to decode the value. Nested values are supported through the usage of the `.` notation.
+    public convenience init(_ key: String? = nil, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
+        self.init(key: key, modifiers: modifiers, defaultValue: value)
     }
 
     // MARK: Codable Conformance
@@ -74,10 +78,6 @@ extension KodableTransformable {
 
     private var propertyDecoding: PropertyDecoding {
         modifiers.first { $0.decodingKind != nil }?.decodingKind ?? .enforceType
-    }
-
-    private var key: String? {
-        modifiers.compactMap(\.key).first
     }
 
     private func overrideValueDecoded(_ value: TargetType) -> TargetType {

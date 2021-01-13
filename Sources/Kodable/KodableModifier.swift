@@ -22,8 +22,6 @@ public enum KodableModifier<T> {
     case custom(OverrideValueClosure)
     /// Changes the decoding method used. Defaults to `decoding(.enforceType)`.
     case decoding(PropertyDecoding)
-    /// Customize the string key used to decode the value. Nested values are supported through the usage of the `.` notation.
-    case key(String)
     /// Adds a validation step at the end before assigning the value that was decoded.
     case validation(ValidationClosure)
 
@@ -31,11 +29,6 @@ public enum KodableModifier<T> {
 
     public typealias ValidationClosure = (T) -> Bool
     public typealias OverrideValueClosure = (T) -> T
-
-    internal var key: String? {
-        guard case let .key(key) = self else { return nil }
-        return key
-    }
 
     internal func validate(_ value: T) -> Bool {
         guard case let .validation(validationClosure) = self else { return true }
@@ -51,10 +44,6 @@ public enum KodableModifier<T> {
         guard case let .decoding(value) = self else { return nil }
         return value
     }
-}
-
-extension KodableModifier: ExpressibleByStringLiteral {
-    public init(stringLiteral value: String) { self = .key(value) }
 }
 
 // MARK: Built in preset modifiers

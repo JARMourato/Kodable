@@ -125,8 +125,8 @@ final class KodableTests: XCTestCase {
         struct Basic: Kodable {
             @Coding("id") var basicID: Int
             @Coding("title", .trimmed) var basicTitle: String
-            @Coding(.key("title"), .trimmed) var optionalTitle: String?
-            @Coding(.key("empty"), .trimmedNifIfEmpty) var emptyTitle: String?
+            @Coding("title", .trimmed) var optionalTitle: String?
+            @Coding("empty", .trimmedNifIfEmpty) var emptyTitle: String?
             @Coding(.max(350)) var width: Int
             @Coding(.min(500)) var height: Int
             @Coding("height", .range(100 ... 500)) var rangeHeight: Int
@@ -557,14 +557,14 @@ final class KodableTests: XCTestCase {
         struct Dates: Kodable {
             @CodableDate var iso8601: Date
             @CodableDate("iso8601") var isoDate: Date?
-            @CodableDate(.format("y-MM-dd"), .key("simple_date")) var simpleDate: Date
-            @CodableDate(.rfc2822, .key("rfc2822")) var rfc2822Date: Date
-            @CodableDate(.rfc3339, .key("rfc3339")) var rfc3339Date: Date
-            @CodableDate(.timestamp, .key("timestamp"), .lossy) var nonOptionalTimestamp: Date
+            @CodableDate(.format("y-MM-dd"), "simple_date") var simpleDate: Date
+            @CodableDate(.rfc2822, "rfc2822") var rfc2822Date: Date
+            @CodableDate(.rfc3339, "rfc3339") var rfc3339Date: Date
+            @CodableDate(.timestamp, "timestamp", .lossy) var nonOptionalTimestamp: Date
             @CodableDate(.timestamp, "timestamp", .lossy) var timestamp: Date?
             @CodableDate var optionalDate: Date?
 
-            @CodableDate(.timestamp, .key("timestamp_non_existent"), default: KodableTests.testDate)
+            @CodableDate(.timestamp, "timestamp_non_existent", default: KodableTests.testDate)
             var defaultTimestamp: Date
 
             var ignoredDate: Date? = KodableTests.testDate
@@ -573,7 +573,7 @@ final class KodableTests: XCTestCase {
         struct CodableDates: Codable {
             @CodableDate var iso8601: Date
             // Since we only use `Codable` the passed modifiers should be ignored
-            @CodableDate(.rfc2822, .key("rfc3339")) var duplicateIso: Date
+            @CodableDate(.rfc2822, "rfc3339") var duplicateIso: Date
         }
 
         do {

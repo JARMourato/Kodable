@@ -56,7 +56,7 @@ If you're working directly in a Package, add Kodable to your Package.swift file
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/JARMourato/Kodable.git", .upToNextMajor(from: "1.0.0" )),
+    .package(url: "https://github.com/JARMourato/Kodable.git", .upToNextMajor(from: "1.0.0")),
 ]
 ```
 
