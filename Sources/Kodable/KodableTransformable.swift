@@ -26,7 +26,7 @@ public protocol KodableTransform {
         if _value == nil {
             fatalError("Trying to access a non optional property that has not been decoded - the property value is nil internally")
         } else {
-            _value as! U
+           return _value as! U
         }
     }
 
