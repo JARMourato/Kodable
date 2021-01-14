@@ -1,5 +1,10 @@
 import Foundation
 
+// MARK: Verify whether a type is optional
+internal protocol OptionalProtocol {}
+
+extension Optional: OptionalProtocol {}
+
 // MARK: Remove double optionals
 
 private protocol Flattenable {

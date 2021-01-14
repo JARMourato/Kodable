@@ -23,11 +23,10 @@ public protocol KodableTransform {
     public typealias TargetType = T.To
 
     private func _wrappedValue<U>(_: U.Type) -> U {
-        if _value == nil {
+        guard _value != nil || U.self is OptionalProtocol.Type else {
             fatalError("Trying to access a non optional property that has not been decoded - the property value is nil internally")
-        } else {
-            return _value as! U
-        }
+        }        
+        return _value as! U
     }
 
     /// - Note: this might crash if an instance of a type uses the property wrapper with a non-optional type
