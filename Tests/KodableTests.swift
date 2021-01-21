@@ -1,3 +1,4 @@
+import CwlPreconditionTesting
 @testable import Kodable
 import XCTest
 
@@ -117,6 +118,15 @@ final class KodableTests: XCTestCase {
         } catch {
             XCTFail(error.localizedDescription)
         }
+    }
+
+    func testFatalErrorAccessingNonOptionalBeforeDecoding() {
+        struct Basic: Kodable {
+            @Coding var basicID: Int
+        }
+
+        // Accessing a non-optional property should crash cause there is no default value
+        XCTAssertNotNil(catchBadInstruction { _ = Basic().basicID })
     }
 
     // MARK: - Test Modifiers
