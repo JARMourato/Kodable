@@ -103,11 +103,13 @@ extension Array: DecodableSequence where Element: LosslessDecodable {
         var elements: [Element] = []
         while !container.isAtEnd {
             do {
+                let decoded = try container.decodeIfPresent(Element.self)
+                
                 if lossy {
-                    guard let value = try container.decodeIfPresent(Element.self) else { continue }
+                    guard let value = decoded else { continue }
                     elements.append(value)
                 } else {
-                    guard let value = try container.decodeIfPresent(LosslessValue<Element>.self)?.value else { continue }
+                    guard let value = try decoded ?? container.decodeIfPresent(LosslessValue<Element>.self)?.value else { continue }
                     elements.append(value)
                 }
             } catch {
