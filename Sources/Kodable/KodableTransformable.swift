@@ -142,7 +142,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
             } else {
                 valueDecoded = try anyDecodable.decodeSequence(from: relevantContainer, with: relevantKey, decoding: propertyDecoding) as? OriginalType
             }
-        } else if let anyDecodable = OriginalType.self as? LosslessDecodable.Type, !enforceTypeDecoding {
+        } else if propertyDecoding == .lossless, let anyDecodable = OriginalType.self as? LosslessDecodable.Type {
             if typeIsOptional {
                 valueDecoded = try anyDecodable.losslessDecodeIfPresent(from: relevantContainer, with: relevantKey) as? OriginalType
             } else {
