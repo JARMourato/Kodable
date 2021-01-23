@@ -7,7 +7,14 @@ public enum Reflection {
         let hashedType = HashedType(type)
         if let cached = cachedTypeInfo[hashedType] { return cached }
         // Compute Type Info when needed
-        let newTypeInfo = try typeInfo(of: type)
+        var newTypeInfo = try typeInfo(of: type)
+        // As of version Runtime 2.2.2, when there are multiple super classes, properties are duplicated
+        var propertyNames: Set<String> = []
+        newTypeInfo.properties = newTypeInfo.properties.filter { p in
+            guard !propertyNames.contains(p.name) else { return false }
+            propertyNames.insert(p.name)
+            return true
+        }
         cachedTypeInfo[hashedType] = newTypeInfo
         return newTypeInfo
     }
