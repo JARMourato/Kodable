@@ -62,8 +62,10 @@ extension Decodable where Self: LosslessStringConvertible {
         func decode<T: Decodable>(_ type: T.Type) throws -> T? {
             try container.decodeIfPresent(type, with: key)
         }
+
+        let value = try? decode(Self.self)
         
-        return try decode(Self.self) ?? decode(LosslessValue<Self>.self)?.value
+        return try value ?? decode(LosslessValue<Self>.self)?.value
     }
 }
 
