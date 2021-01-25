@@ -33,9 +33,9 @@ public extension Dekodable {
         var mirror: Mirror? = Mirror(reflecting: self)
 
         while true {
-            guard let children = mirror?.children.filter({ $0.label != nil }) else { break }
+            guard let children = mirror?.children else { break }
 
-            for child in children {
+            for child in children where child.label != nil {
                 let name = child.label! // Nil values are removed in guard above
                 if let decodable = child.value as? DecodableProperty {
                     try decodeExtendedProperty(decodable, with: name, from: container)
@@ -82,9 +82,9 @@ public extension Enkodable {
         var mirror: Mirror? = Mirror(reflecting: self)
 
         while true {
-            guard let children = mirror?.children.filter({ $0.label != nil }) else { break }
+            guard let children = mirror?.children else { break }
 
-            for child in children {
+            for child in children where child.label != nil {
                 var propertyName = child.label! // Nil values are removed in guard above
                 if propertyName.hasPrefix("_") { // Property wrappers start by "_", hence we remove that
                     propertyName = String(propertyName.dropFirst())
