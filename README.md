@@ -56,7 +56,7 @@ If you're working directly in a Package, add Kodable to your Package.swift file
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/JARMourato/Kodable.git", .upToNextMajor(from: "1.0.0")),
+    .package(url: "https://github.com/JARMourato/Kodable.git", .upToNextMajor(from: "1.1.0")),
 ]
 ```
 
@@ -183,7 +183,7 @@ The lossy decoding on `Array` is done by trying to decode each element from a `A
 
 ```Swift
 struct LossyArray: Kodable {
-    @Coding("failable_array") var array: [String]
+    @Coding("failable_array", decoding: .lossy) var array: [String]
 }
 
 let json = """
@@ -202,7 +202,7 @@ Tries to decode a `Bool` from `Int` or `String` if `Bool` fails
 
 ```Swift
 struct Fail: Kodable {
-    @Coding("string_bool", .enforceTypeDecoding) var notBool: Bool
+    @Coding("string_bool", decoding: .enforceTypeDecoding) var notBool: Bool
 }
 
 struct Success: Kodable {
@@ -259,7 +259,7 @@ struct Project: Kodable {
     @Coding(Project.trimmed) var title: String
     
     static var trimmed: KodableModifier<String> { 
-        KodableModifier.custom { $0.trimmingCharacters(in: .whitespacesAndNewlines) } 
+        KodableModifier { $0.trimmingCharacters(in: .whitespacesAndNewlines) } 
     }
 }
 
