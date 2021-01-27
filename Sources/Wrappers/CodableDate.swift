@@ -18,16 +18,16 @@ import Foundation
         super.init()
     }
 
-    public init(_ modifiers: KodableModifier<T>..., default value: T? = nil) {
-        super.init(key: nil, modifiers: modifiers, defaultValue: value)
+    public init(decoding: PropertyDecoding = .enforceType, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
+        super.init(key: nil, decoding: decoding, modifiers: modifiers, defaultValue: value)
     }
 
-    public init(_ key: String, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
-        super.init(key: key, modifiers: modifiers, defaultValue: value)
+    public init(_ key: String, decoding: PropertyDecoding = .enforceType, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
+        super.init(key: key, decoding: decoding, modifiers: modifiers, defaultValue: value)
     }
 
-    public init(_ strategy: DateCodingStrategy, _ key: String? = nil, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
-        super.init(key: key, modifiers: modifiers, defaultValue: value)
+    public init(_ strategy: DateCodingStrategy, _ key: String? = nil, decoding: PropertyDecoding = .enforceType, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
+        super.init(key: key, decoding: decoding, modifiers: modifiers, defaultValue: value)
         transformer.strategy = strategy
     }
 

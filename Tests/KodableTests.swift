@@ -142,6 +142,7 @@ final class KodableTests: XCTestCase {
             @Coding("height", .range(100 ... 500)) var rangeHeight: Int
             @Coding("views_count", .clamping(to: 5000 ... 5400)) var views: Int
             @Coding("images.teaser", .validation { URL(string: $0) != nil }) var teaseImageStringURL: String
+            @Coding("comments_count", .overrideValue { $0.constrained(toAtMost: 10) }) var commentsCount: Int
         }
 
         do {
@@ -156,6 +157,7 @@ final class KodableTests: XCTestCase {
             XCTAssertEqual(decoded.width, 350)
             XCTAssertEqual(decoded.views, 5400)
             XCTAssertEqual(decoded.teaseImageStringURL, "https://d13yacurqjgara.cloudfront.net/users/136707/screenshots/2623488/create_new_project_teaser.gif")
+            XCTAssertEqual(decoded.commentsCount, 10)
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -173,11 +175,11 @@ final class KodableTests: XCTestCase {
 
     func testEnforceType() {
         struct Failed: Kodable {
-            @Coding("string_bool", .decoding(.enforceType)) var notBool: Bool
+            @Coding("string_bool", decoding: .enforceType) var notBool: Bool
         }
 
         struct Success: Kodable {
-            @Coding("animated", .decoding(.enforceType)) var isBool: Bool
+            @Coding("animated", decoding: .enforceType) var isBool: Bool
         }
 
         do {
@@ -424,15 +426,15 @@ final class KodableTests: XCTestCase {
         }
 
         struct LosslessArray: Kodable {
-            @Coding("failable_array", .decoding(.lossless)) var array: [String]?
+            @Coding("failable_array", decoding: .lossless) var array: [String]?
         }
 
         struct LossyArray: Kodable {
-            @Coding("failable_array", .decoding(.lossy)) var array: [String]
+            @Coding("failable_array", decoding: .lossy) var array: [String]
         }
 
         struct EnforcedTypeArray: Kodable {
-            @Coding("failable_array", .decoding(.enforceType))
+            @Coding("failable_array", decoding: .enforceType)
             var array: [String]
         }
 
@@ -565,13 +567,13 @@ final class KodableTests: XCTestCase {
 
     func testCodableDate() {
         struct Dates: Kodable {
-            @CodableDate var iso8601: Date
+            @CodableDate(decoding: .enforceType) var iso8601: Date
             @CodableDate("iso8601") var isoDate: Date?
             @CodableDate(.format("y-MM-dd"), "simple_date") var simpleDate: Date
             @CodableDate(.rfc2822, "rfc2822") var rfc2822Date: Date
             @CodableDate(.rfc3339, "rfc3339") var rfc3339Date: Date
-            @CodableDate(.timestamp, "timestamp", .lossy) var nonOptionalTimestamp: Date
-            @CodableDate(.timestamp, "timestamp", .lossy) var timestamp: Date?
+            @CodableDate(.timestamp, "timestamp", decoding: .lossless) var nonOptionalTimestamp: Date
+            @CodableDate(.timestamp, "timestamp", decoding: .lossless) var timestamp: Date?
             @CodableDate var optionalDate: Date?
 
             @CodableDate(.timestamp, "timestamp_non_existent", default: KodableTests.testDate)

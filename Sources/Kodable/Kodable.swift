@@ -27,6 +27,7 @@ public extension Dekodable {
     }
 
     // MARK: Decoding logic
+
     mutating func decode(from decoder: Decoder) throws {
         let container = try decoder.anyDecodingContainer()
 
@@ -50,17 +51,6 @@ public extension Dekodable {
             name = String(name.dropFirst())
         }
         try property.decodeValueForProperty(with: name, from: container)
-    }
-
-    private mutating func decodeRegularProperty(with propertyName: String, from container: DecodeContainer, for type: Any.Type) throws {
-        let typeInfo = try Reflection.typeInformation(of: type)
-        let property = try typeInfo.property(named: propertyName)
-
-        // Ignores all properties that don't conform to `Decodable`
-        guard let decodable = property.type as? Decodable.Type else { return }
-
-        let value = try decodable.decodeIfPresent(from: container, with: propertyName) as Any
-        try property.set(value: value, on: &self)
     }
 }
 

@@ -45,11 +45,10 @@ struct LosslessValue<T: LosslessDecodable>: Decodable {
 
 extension Decodable where Self: LosslessStringConvertible {
     static func losslessDecode(from container: DecodeContainer, with key: String) throws -> Self {
-        
         func decode<T: Decodable>(_ type: T.Type) -> T? {
             try? container.decode(type, with: key)
         }
-        
+
         guard let decoded = decode(Self.self) ?? decode(LosslessValue<Self>.self)?.value else {
             if container.containsValue(for: key) { throw KodableError.invalidValueForPropertyWithKey(key) }
             throw KodableError.nonOptionalValueMissing(property: key)
@@ -58,13 +57,12 @@ extension Decodable where Self: LosslessStringConvertible {
     }
 
     static func losslessDecodeIfPresent(from container: DecodeContainer, with key: String) throws -> Self? {
-        
         func decode<T: Decodable>(_ type: T.Type) throws -> T? {
             try container.decodeIfPresent(type, with: key)
         }
 
         let value = try? decode(Self.self)
-        
+
         return try value ?? decode(LosslessValue<Self>.self)?.value
     }
 }
