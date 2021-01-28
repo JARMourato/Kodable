@@ -1,2 +1,2 @@
 brew "swiftformat"
-brew "swiftlint"
+brew link --overwrite "swiftlint"
