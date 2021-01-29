@@ -10,6 +10,8 @@ import Foundation
         set { super.wrappedValue = newValue }
     }
 
+    /// - Parameters:
+    ///   - decoding: Changes the decoding method used. Defaults to `decoding(.enforceType)`.
     public convenience init(decoding: PropertyDecoding = .enforceType, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
         self.init(key: nil, decoding: decoding, modifiers: modifiers, defaultValue: value)
     }

@@ -53,7 +53,7 @@ public protocol KodableTransform {
 
     /// - Parameters:
     ///   - key: Customize the string key used to decode the value. Nested values are supported through the usage of the `.` notation.
-    public convenience init(_ key: String? = nil, _ decoding: PropertyDecoding = .enforceType, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
+    public convenience init(_ key: String? = nil, decoding: PropertyDecoding = .enforceType, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
         self.init(key: key, decoding: decoding, modifiers: modifiers, defaultValue: value)
     }
 

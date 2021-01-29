@@ -301,8 +301,8 @@ final class KodableTests: XCTestCase {
         struct Bools: Kodable {
             @Coding("animated") var regularBool: Bool
             @Coding("optional_bool") var optionalBool: Bool?
-            @Coding("string_bool", .lossless) var boolFromString: Bool
-            @Coding("int_bool", .lossless) var boolFromInt: Bool
+            @Coding("string_bool", decoding: .lossless) var boolFromString: Bool
+            @Coding("int_bool", decoding: .lossless) var boolFromInt: Bool
         }
 
         do {
@@ -329,16 +329,16 @@ final class KodableTests: XCTestCase {
         struct Strings: Kodable {
             @Coding("first_name") var regularString: String
             @Coding("home_address") var optionalString: String?
-            @Coding("width", .lossless) var stringFromInt: String
-            @Coding("amount", .lossless) var stringFromDouble: String
+            @Coding("width", decoding: .lossless) var stringFromInt: String
+            @Coding("amount", decoding: .lossless) var stringFromDouble: String
         }
 
         struct FailingString: Kodable {
-            @Coding("languages", .lossless) var string: String
+            @Coding("languages", decoding: .lossless) var string: String
         }
 
         struct MissingString: Kodable {
-            @Coding("missing_languages", .lossless) var string: String
+            @Coding("missing_languages", decoding: .lossless) var string: String
         }
 
         do {
@@ -477,7 +477,7 @@ final class KodableTests: XCTestCase {
             @Coding(default: "Absent optional") var phone: String?
             @Coding(default: "Absent non-optional") var telephone: String
             @Coding("home_address") var address: String?
-            @Coding("amount", .lossless) var amountString: String?
+            @Coding("amount", decoding: .lossless) var amountString: String?
             @Coding("animated") var hasAnimation: Bool
             @Coding("animated") var optionalAnimation: Bool?
             @Coding var name: String

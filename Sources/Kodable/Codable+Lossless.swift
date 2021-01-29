@@ -9,37 +9,40 @@ public typealias LosslessDecodable = LosslessStringConvertible & Decodable
 struct LosslessValue<T: LosslessDecodable>: Decodable {
     var value: T
 
+    // Nested Types
+    struct Corrupted: Error {}
+
     init(from decoder: Decoder) throws {
-        do {
-            value = try T(from: decoder)
-        } catch {
-            func decode<T: LosslessDecodable>(_: T.Type) -> (Decoder) -> LosslessDecodable? {
-                { try? T(from: $0) }
-            }
-
-            func decodeBoolFromNSNumber() -> (Decoder) -> LosslessDecodable? {
-                { (try? Int(from: $0)).flatMap { Bool(exactly: NSNumber(value: $0)) } }
-            }
-
-            let types: [(Decoder) -> LosslessDecodable?] = [
-                decode(String.self),
-                decodeBoolFromNSNumber(),
-                decode(Bool.self),
-                decode(Int.self),
-                decode(Int8.self),
-                decode(Int16.self),
-                decode(Int64.self),
-                decode(UInt.self),
-                decode(UInt8.self),
-                decode(UInt16.self),
-                decode(UInt64.self),
-                decode(Double.self),
-                decode(Float.self),
-            ]
-
-            guard let rawValue = types.lazy.compactMap({ $0(decoder) }).first, let value = T("\(rawValue)") else { throw error }
-            self.value = value
+        func decode<T: LosslessDecodable>(_: T.Type) -> (Decoder) -> LosslessDecodable? {
+            { try? T(from: $0) }
         }
+
+        func decodeBoolFromNSNumber() -> (Decoder) -> LosslessDecodable? {
+            { (try? Int(from: $0)).flatMap { Bool(exactly: NSNumber(value: $0)) } }
+        }
+
+        // The order of the types matter!!
+        let types: [(Decoder) -> LosslessDecodable?] = [
+            decode(String.self),
+            decodeBoolFromNSNumber(),
+            decode(Bool.self),
+            decode(Int.self),
+            decode(Int8.self),
+            decode(Int16.self),
+            decode(Int64.self),
+            decode(UInt.self),
+            decode(UInt8.self),
+            decode(UInt16.self),
+            decode(UInt64.self),
+            decode(Double.self),
+            decode(Float.self),
+        ]
+
+        guard let rawValue = types.lazy.compactMap({ $0(decoder) }).first, let value = T("\(rawValue)") else {
+            throw Corrupted()
+        }
+
+        self.value = value
     }
 }
 
