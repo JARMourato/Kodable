@@ -18,6 +18,8 @@ public protocol KodableTransform {
     internal var transformer = T()
     internal var _value: T.To?
     private let modifiers: [KodableModifier<TargetType>]
+    public private(set) var key: String?
+    public private(set) var decoding: PropertyDecoding = .enforceType
 
     public typealias OriginalType = T.From
     public typealias TargetType = T.To
@@ -36,19 +38,17 @@ public protocol KodableTransform {
         set { _value = newValue }
     }
 
-    internal init(_ modifiers: [KodableModifier<TargetType>], default value: TargetType?) {
+    internal init(key: String? = nil, decoding: PropertyDecoding, modifiers: [KodableModifier<TargetType>], defaultValue: TargetType?) {
+        self.key = key
         self.modifiers = modifiers
-        _value = value
+        self.decoding = decoding
+        _value = defaultValue
     }
 
     // MARK: Public Initializers
 
     public init() {
         modifiers = []
-    }
-
-    public convenience init(_ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
-        self.init(modifiers, default: value)
     }
 
     // MARK: Codable Conformance
@@ -70,19 +70,6 @@ public protocol KodableTransform {
 // MARK: Modifier Handling
 
 extension KodableTransformable {
-    private var enforceTypeDecoding: Bool {
-        guard let modifier = modifiers.first(where: { $0.decodingKind != nil }) else { return true }
-        return modifier.decodingKind == .enforceType
-    }
-
-    private var propertyDecoding: PropertyDecoding {
-        modifiers.first { $0.decodingKind != nil }?.decodingKind ?? .enforceType
-    }
-
-    private var key: String? {
-        modifiers.compactMap(\.key).first
-    }
-
     private func overrideValueDecoded(_ value: TargetType) -> TargetType {
         var modifiedCopy = value
         for modifier in modifiers { modifiedCopy = modifier.overrideValue(modifiedCopy) }
@@ -138,11 +125,11 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
 
         if let anyDecodable = OriginalType.self as? DecodableSequence.Type {
             if typeIsOptional {
-                valueDecoded = try anyDecodable.decodeSequenceIfPresent(from: relevantContainer, with: relevantKey, decoding: propertyDecoding) as? OriginalType
+                valueDecoded = try anyDecodable.decodeSequenceIfPresent(from: relevantContainer, with: relevantKey, decoding: decoding) as? OriginalType
             } else {
-                valueDecoded = try anyDecodable.decodeSequence(from: relevantContainer, with: relevantKey, decoding: propertyDecoding) as? OriginalType
+                valueDecoded = try anyDecodable.decodeSequence(from: relevantContainer, with: relevantKey, decoding: decoding) as? OriginalType
             }
-        } else if let anyDecodable = OriginalType.self as? LosslessDecodable.Type, !enforceTypeDecoding {
+        } else if decoding == .lossless, let anyDecodable = OriginalType.self as? LosslessDecodable.Type {
             if typeIsOptional {
                 valueDecoded = try anyDecodable.losslessDecodeIfPresent(from: relevantContainer, with: relevantKey) as? OriginalType
             } else {
@@ -178,4 +165,16 @@ extension KodableTransformable: EncodableProperty where OriginalType: Encodable 
         let encodableValue = try transformer.transformToJSON(value: wrappedValue)
         try relevantContainer.encodeIfPresent(encodableValue, with: relavantKey)
     }
+}
+
+// MARK: - Property Decoding
+
+public enum PropertyDecoding {
+    /// Enforces the property type when decoding. If the value present in the decoder does not match, decoding will fail. This is the default option.
+    case enforceType
+    /// Tries decoding the property type from other compatible types, adding resilence to the decoding process. This uses `LosslessStringConvertible` under the hood.
+    case lossless
+    /// This option is only relevant to `Collection` types. It allows to decode elements, ignoring individual elements for which decoding failed.
+    /// if selected for non compatible types, `enforceType` will be used
+    case lossy
 }

@@ -135,13 +135,14 @@ final class KodableTests: XCTestCase {
         struct Basic: Kodable {
             @Coding("id") var basicID: Int
             @Coding("title", .trimmed) var basicTitle: String
-            @Coding(.key("title"), .trimmed) var optionalTitle: String?
-            @Coding(.key("empty"), .trimmedNifIfEmpty) var emptyTitle: String?
+            @Coding("title", .trimmed) var optionalTitle: String?
+            @Coding("empty", .trimmedNifIfEmpty) var emptyTitle: String?
             @Coding(.max(350)) var width: Int
             @Coding(.min(500)) var height: Int
             @Coding("height", .range(100 ... 500)) var rangeHeight: Int
             @Coding("views_count", .clamping(to: 5000 ... 5400)) var views: Int
             @Coding("images.teaser", .validation { URL(string: $0) != nil }) var teaseImageStringURL: String
+            @Coding("comments_count", .overrideValue { $0.constrained(toAtMost: 10) }) var commentsCount: Int
         }
 
         do {
@@ -156,6 +157,7 @@ final class KodableTests: XCTestCase {
             XCTAssertEqual(decoded.width, 350)
             XCTAssertEqual(decoded.views, 5400)
             XCTAssertEqual(decoded.teaseImageStringURL, "https://d13yacurqjgara.cloudfront.net/users/136707/screenshots/2623488/create_new_project_teaser.gif")
+            XCTAssertEqual(decoded.commentsCount, 10)
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -173,11 +175,11 @@ final class KodableTests: XCTestCase {
 
     func testEnforceType() {
         struct Failed: Kodable {
-            @Coding("string_bool", .decoding(.enforceType)) var notBool: Bool
+            @Coding("string_bool", decoding: .enforceType) var notBool: Bool
         }
 
         struct Success: Kodable {
-            @Coding("animated", .decoding(.enforceType)) var isBool: Bool
+            @Coding("animated", decoding: .enforceType) var isBool: Bool
         }
 
         do {
@@ -299,8 +301,8 @@ final class KodableTests: XCTestCase {
         struct Bools: Kodable {
             @Coding("animated") var regularBool: Bool
             @Coding("optional_bool") var optionalBool: Bool?
-            @Coding("string_bool", .lossless) var boolFromString: Bool
-            @Coding("int_bool", .lossless) var boolFromInt: Bool
+            @Coding("string_bool", decoding: .lossless) var boolFromString: Bool
+            @Coding("int_bool", decoding: .lossless) var boolFromInt: Bool
         }
 
         do {
@@ -327,16 +329,16 @@ final class KodableTests: XCTestCase {
         struct Strings: Kodable {
             @Coding("first_name") var regularString: String
             @Coding("home_address") var optionalString: String?
-            @Coding("width", .lossless) var stringFromInt: String
-            @Coding("amount", .lossless) var stringFromDouble: String
+            @Coding("width", decoding: .lossless) var stringFromInt: String
+            @Coding("amount", decoding: .lossless) var stringFromDouble: String
         }
 
         struct FailingString: Kodable {
-            @Coding("languages", .lossless) var string: String
+            @Coding("languages", decoding: .lossless) var string: String
         }
 
         struct MissingString: Kodable {
-            @Coding("missing_languages", .lossless) var string: String
+            @Coding("missing_languages", decoding: .lossless) var string: String
         }
 
         do {
@@ -424,15 +426,15 @@ final class KodableTests: XCTestCase {
         }
 
         struct LosslessArray: Kodable {
-            @Coding("failable_array", .decoding(.lossless)) var array: [String]?
+            @Coding("failable_array", decoding: .lossless) var array: [String]?
         }
 
         struct LossyArray: Kodable {
-            @Coding("failable_array", .decoding(.lossy)) var array: [String]
+            @Coding("failable_array", decoding: .lossy) var array: [String]
         }
 
         struct EnforcedTypeArray: Kodable {
-            @Coding("failable_array", .decoding(.enforceType))
+            @Coding("failable_array", decoding: .enforceType)
             var array: [String]
         }
 
@@ -475,7 +477,7 @@ final class KodableTests: XCTestCase {
             @Coding(default: "Absent optional") var phone: String?
             @Coding(default: "Absent non-optional") var telephone: String
             @Coding("home_address") var address: String?
-            @Coding("amount", .lossless) var amountString: String?
+            @Coding("amount", decoding: .lossless) var amountString: String?
             @Coding("animated") var hasAnimation: Bool
             @Coding("animated") var optionalAnimation: Bool?
             @Coding var name: String
@@ -565,16 +567,16 @@ final class KodableTests: XCTestCase {
 
     func testCodableDate() {
         struct Dates: Kodable {
-            @CodableDate var iso8601: Date
+            @CodableDate(decoding: .enforceType) var iso8601: Date
             @CodableDate("iso8601") var isoDate: Date?
-            @CodableDate(.format("y-MM-dd"), .key("simple_date")) var simpleDate: Date
-            @CodableDate(.rfc2822, .key("rfc2822")) var rfc2822Date: Date
-            @CodableDate(.rfc3339, .key("rfc3339")) var rfc3339Date: Date
-            @CodableDate(.timestamp, .key("timestamp"), .lossy) var nonOptionalTimestamp: Date
-            @CodableDate(.timestamp, "timestamp", .lossy) var timestamp: Date?
+            @CodableDate(.format("y-MM-dd"), "simple_date") var simpleDate: Date
+            @CodableDate(.rfc2822, "rfc2822") var rfc2822Date: Date
+            @CodableDate(.rfc3339, "rfc3339") var rfc3339Date: Date
+            @CodableDate(.timestamp, "timestamp", decoding: .lossless) var nonOptionalTimestamp: Date
+            @CodableDate(.timestamp, "timestamp", decoding: .lossless) var timestamp: Date?
             @CodableDate var optionalDate: Date?
 
-            @CodableDate(.timestamp, .key("timestamp_non_existent"), default: KodableTests.testDate)
+            @CodableDate(.timestamp, "timestamp_non_existent", default: KodableTests.testDate)
             var defaultTimestamp: Date
 
             var ignoredDate: Date? = KodableTests.testDate
@@ -583,7 +585,7 @@ final class KodableTests: XCTestCase {
         struct CodableDates: Codable {
             @CodableDate var iso8601: Date
             // Since we only use `Codable` the passed modifiers should be ignored
-            @CodableDate(.rfc2822, .key("rfc3339")) var duplicateIso: Date
+            @CodableDate(.rfc2822, "rfc3339") var duplicateIso: Date
         }
 
         do {

@@ -30,22 +30,18 @@ public extension Dekodable {
 
     mutating func decode(from decoder: Decoder) throws {
         let container = try decoder.anyDecodingContainer()
-        var mirror: Mirror? = Mirror(reflecting: self)
 
-        while true {
-            guard let children = mirror?.children else { break }
+        let currentType = try Reflection.typeInformation(of: type(of: self))
 
-            for child in children where child.label != nil {
-                let name = child.label! // Nil values are removed in guard above
-                if let decodable = child.value as? DecodableProperty {
-                    try decodeExtendedProperty(decodable, with: name, from: container)
-                } else {
-                    guard let type = mirror?.subjectType else { continue }
-                    try decodeRegularProperty(with: name, from: container, for: type)
-                }
+        for property in currentType.properties {
+            if let decodable = try? property.get(from: self) as? DecodableProperty {
+                try decodeExtendedProperty(decodable, with: property.name, from: container)
+            } else {
+                // Ignores all properties that don't conform to `Decodable`
+                guard let decodable = property.type as? Decodable.Type else { return }
+                let value = try decodable.decodeIfPresent(from: container, with: property.name) as Any
+                try property.set(value: value, on: &self)
             }
-
-            mirror = mirror?.superclassMirror
         }
     }
 
@@ -55,17 +51,6 @@ public extension Dekodable {
             name = String(name.dropFirst())
         }
         try property.decodeValueForProperty(with: name, from: container)
-    }
-
-    private mutating func decodeRegularProperty(with propertyName: String, from container: DecodeContainer, for type: Any.Type) throws {
-        let typeInfo = try Reflection.typeInformation(of: type)
-        let property = try typeInfo.property(named: propertyName)
-
-        // Ignores all properties that don't conform to `Decodable`
-        guard let decodable = property.type as? Decodable.Type else { return }
-
-        let value = try decodable.decodeIfPresent(from: container, with: propertyName) as Any
-        try property.set(value: value, on: &self)
     }
 }
 
