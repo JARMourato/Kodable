@@ -39,8 +39,10 @@ public extension Dekodable {
             } else {
                 // Ignores all properties that don't conform to `Decodable`
                 guard let decodable = property.type as? Decodable.Type else { return }
-                let value = try decodable.decodeIfPresent(from: container, with: property.name) as Any
-                try property.set(value: value, on: &self)
+                if container.containsValue(for: property.name) {
+                    let value = try decodable.decodeIfPresent(from: container, with: property.name) as Any
+                    try property.set(value: value, on: &self)
+                }
             }
         }
     }
