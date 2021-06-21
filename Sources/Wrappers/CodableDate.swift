@@ -75,7 +75,7 @@ public enum DateCodingStrategy {
     case rfc3339
     case timestamp
 
-    internal func date(from value: String) -> Date? {
+    public func date(from value: String) -> Date? {
         switch self {
         case let .format(format): return DateCodingStrategy.getFormatter(format).date(from: value)
         case .iso8601: return DateCodingStrategy.iso8601Formatter.date(from: value)
@@ -87,7 +87,7 @@ public enum DateCodingStrategy {
         }
     }
 
-    internal func string(from date: Date) -> String {
+    public func string(from date: Date) -> String {
         switch self {
         case let .format(format): return DateCodingStrategy.getFormatter(format).string(from: date)
         case .iso8601: return DateCodingStrategy.iso8601Formatter.string(from: date)
