@@ -554,7 +554,30 @@ final class KodableTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
     }
+    
+    // MARK: - Equatable
 
+    func testCodableConformsToEquatable() {
+        struct User: Kodable, Equatable {
+            @Coding var name: String
+            
+            static func with(name: String) -> User {
+                let user = User()
+                user.name = name
+                return user
+            }
+        }
+
+        let a = User.with(name: "João")
+        let b = User.with(name: "Roger")
+        let c = a
+        
+        XCTAssertNotEqual(a.name, b.name)
+        XCTAssertNotEqual(a, b)
+        XCTAssertEqual(a.name, c.name)
+        XCTAssertEqual(a, c)
+    }
+    
     // MARK: - CodableDate
 
     func testDateTransformerFailedToParseError() {
@@ -635,6 +658,33 @@ final class KodableTests: XCTestCase {
             @CodableDate("social") var isoDate: Date
         }
         assert(try Dates.decodeJSON(from: KodableTests.json), throws: KodableError.failedToParseDate(source: "123456789987654321"))
+    }
+    
+    // MARK: - Equatable
+
+    func testCodableDateConformsToEquatable() throws {
+        struct RFCDate: Kodable, Equatable {
+            @CodableDate(.rfc2822, "rfc2822") var date: Date
+            
+            static func fromJSON() throws -> RFCDate {
+                try RFCDate.decodeJSON(from: KodableTests.json)
+            }
+            
+            static func now() -> RFCDate {
+                let now = RFCDate()
+                now.date = Date()
+                return now
+            }
+        }
+
+        let a = try RFCDate.fromJSON()
+        let b = RFCDate.now()
+        let c = a
+        
+        XCTAssertNotEqual(a.date, b.date)
+        XCTAssertNotEqual(a, b)
+        XCTAssertEqual(a.date, c.date)
+        XCTAssertEqual(a, c)
     }
 
     // MARK: - Flattened Tests
