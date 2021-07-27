@@ -20,6 +20,7 @@ public protocol KodableTransform {
     private let modifiers: [KodableModifier<TargetType>]
     public private(set) var key: String?
     public private(set) var decoding: PropertyDecoding = .enforceType
+    public private(set) var encodeAsNullIfNil: Bool = false
 
     public typealias OriginalType = T.From
     public typealias TargetType = T.To
@@ -38,10 +39,11 @@ public protocol KodableTransform {
         set { _value = newValue }
     }
 
-    internal init(key: String? = nil, decoding: PropertyDecoding, modifiers: [KodableModifier<TargetType>], defaultValue: TargetType?) {
+    internal init(key: String? = nil, decoding: PropertyDecoding, encodeAsNullIfNil: Bool, modifiers: [KodableModifier<TargetType>], defaultValue: TargetType?) {
         self.key = key
         self.modifiers = modifiers
         self.decoding = decoding
+        self.encodeAsNullIfNil = encodeAsNullIfNil
         _value = defaultValue
     }
 
@@ -163,7 +165,9 @@ extension KodableTransformable: EncodableProperty where OriginalType: Encodable 
     func encodeValueFromProperty(with propertyName: String, to container: inout EncodeContainer) throws {
         var (relevantContainer, relavantKey) = try container.nestedContainerAndKey(for: key ?? propertyName)
         let encodableValue = try transformer.transformToJSON(value: wrappedValue)
-        try relevantContainer.encodeIfPresent(encodableValue, with: relavantKey)
+        let isValueNil = (encodableValue as? OptionalProtocol)?.isNil ?? false
+        guard !isValueNil || encodeAsNullIfNil else { return }
+        try relevantContainer.encode(encodableValue, with: relavantKey)
     }
 }
 

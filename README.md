@@ -39,6 +39,7 @@ Table of contents
          * [Overriding Values](#overriding-values)
          * [Validating Values](#validating-values)
          * [Custom Wrapper](#custom-wrapper)
+         * [Encode null values](#encode-null-values)
       * [Contributions](#contributions)
       * [License](#license)
       * [Contact](#contact)
@@ -345,6 +346,49 @@ And voilà
 ```Swift
 struct Test: Kodable {
     @CodingURL("html_url") var url: URL
+}
+```
+
+### Encode Null Values
+
+By default optional values won't be encoded so: 
+
+```swift
+struct User: Kodable {
+    @Coding var firstName: String
+    @Coding var lastName: String?
+}
+
+let user = User()
+user.firstName = "João"
+```
+
+When encoded will output: 
+
+```js
+{
+    "firstName": "João"
+}
+```
+
+However, if you want to explicitly encode null values, then you can set `encodeAsNullIfNil` property to be true: 
+
+```swift
+struct User: Kodable {
+    @Coding var firstName: String
+    @Coding(encodeAsNullIfNil: true) var lastName: String?
+}
+
+let user = User()
+user.firstName = "João"
+```
+
+Which will then output: 
+
+```js
+{
+    "firstName": "João",
+    "lastName": null
 }
 ```
 
