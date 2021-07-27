@@ -353,7 +353,7 @@ struct Test: Kodable {
 
 By default optional values won't be encoded so: 
 
-```Swift
+```swift
 struct User: Kodable {
     @Coding var firstName: String
     @Coding var lastName: String?
@@ -365,7 +365,7 @@ user.firstName = "João"
 
 When encoded will output: 
 
-```Swift
+```js
 {
     "firstName": "João"
 }
@@ -373,7 +373,7 @@ When encoded will output:
 
 However, if you want to explicitly encode null values, then you can set `encodeAsNullIfNil` property to be true: 
 
-```Swift
+```swift
 struct User: Kodable {
     @Coding var firstName: String
     @Coding(encodeAsNullIfNil: true) var lastName: String?
@@ -385,7 +385,7 @@ user.firstName = "João"
 
 Which will then output: 
 
-```Swift
+```js
 {
     "firstName": "João",
     "lastName": null
