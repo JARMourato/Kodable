@@ -45,6 +45,19 @@ final class KodableTests: XCTestCase {
         }
     }
 
+    func testEncodingNullValuesOutput() throws {
+        struct Strings: Kodable {
+            @Coding var optionalString: String?
+            @Coding(encodeAsNullIfNil: true) var nullOptionalString: String?
+        }
+
+        let strings = Strings()
+        let data = try strings.encodeJSON()
+        let dic = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
+        XCTAssertNil(dic!["optionalString"])
+        XCTAssertEqual(dic!["nullOptionalString"] as? NSNull, NSNull())
+    }
+
     func testEncodingAndDecodingUsingCoder() {
         struct User: Kodable {
             @Coding("first_name") var firstName: String
@@ -554,13 +567,13 @@ final class KodableTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
     }
-    
+
     // MARK: - Equatable
 
     func testCodableConformsToEquatable() {
         struct User: Kodable, Equatable {
             @Coding var name: String
-            
+
             static func with(name: String) -> User {
                 let user = User()
                 user.name = name
@@ -571,13 +584,13 @@ final class KodableTests: XCTestCase {
         let a = User.with(name: "João")
         let b = User.with(name: "Roger")
         let c = a
-        
+
         XCTAssertNotEqual(a.name, b.name)
         XCTAssertNotEqual(a, b)
         XCTAssertEqual(a.name, c.name)
         XCTAssertEqual(a, c)
     }
-    
+
     // MARK: - CodableDate
 
     func testDateTransformerFailedToParseError() {
@@ -659,17 +672,17 @@ final class KodableTests: XCTestCase {
         }
         assert(try Dates.decodeJSON(from: KodableTests.json), throws: KodableError.failedToParseDate(source: "123456789987654321"))
     }
-    
+
     // MARK: - Equatable
 
     func testCodableDateConformsToEquatable() throws {
         struct RFCDate: Kodable, Equatable {
             @CodableDate(.rfc2822, "rfc2822") var date: Date
-            
+
             static func fromJSON() throws -> RFCDate {
                 try RFCDate.decodeJSON(from: KodableTests.json)
             }
-            
+
             static func now() -> RFCDate {
                 let now = RFCDate()
                 now.date = Date()
@@ -680,11 +693,21 @@ final class KodableTests: XCTestCase {
         let a = try RFCDate.fromJSON()
         let b = RFCDate.now()
         let c = a
-        
+
         XCTAssertNotEqual(a.date, b.date)
         XCTAssertNotEqual(a, b)
         XCTAssertEqual(a.date, c.date)
         XCTAssertEqual(a, c)
+    }
+
+    // MARK: - OptionalProtocol Tests
+
+    func testOptionalProtocolIsNil() {
+        let nonNilValue: String? = ""
+        let nilValue: String? = nil
+
+        XCTAssertFalse(nonNilValue.isNil)
+        XCTAssertTrue(nilValue.isNil)
     }
 
     // MARK: - Flattened Tests
