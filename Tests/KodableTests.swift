@@ -54,7 +54,7 @@ final class KodableTests: XCTestCase {
         let strings = Strings()
         let data = try strings.encodeJSON()
         let dic = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-        XCTAssertNil(dic!["optionalString"])
+        XCTAssertFalse(dic!.keys.contains("optionalString"))
         XCTAssertEqual(dic!["nullOptionalString"] as? NSNull, NSNull())
     }
 
@@ -700,16 +700,6 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(a, c)
     }
 
-    // MARK: - OptionalProtocol Tests
-
-    func testOptionalProtocolIsNil() {
-        let nonNilValue: String? = ""
-        let nilValue: String? = nil
-
-        XCTAssertFalse(nonNilValue.isNil)
-        XCTAssertTrue(nilValue.isNil)
-    }
-
     // MARK: - Flattened Tests
 
     // https://gist.github.com/rogerluan/ee04febd80371f88f9435e98032b3042
@@ -733,6 +723,22 @@ final class KodableTests: XCTestCase {
         XCTAssert(isEqual(type: Int?.self, a: Int???????.none.flattened(), b: nil))
         let _20levelsNested: Int???????????????????? = 20
         XCTAssert(isEqual(type: Int?.self, a: _20levelsNested.flattened(), b: Optional(20)))
+    }
+
+    // MARK: - OptionalProtocol Tests
+
+    func testOptionalProtocolIsNil() {
+        let nonNilValue: String? = ""
+        let doubleNonNilValue: String?? = ""
+        let nilValue: String? = nil
+        let doubleNilValue: String?? = nil
+        let optionalEnum: String?? = .some(nil)
+
+        XCTAssertFalse(nonNilValue.isNil)
+        XCTAssertFalse(doubleNonNilValue.isNil)
+        XCTAssertTrue(nilValue.isNil)
+        XCTAssertTrue(doubleNilValue.isNil)
+        XCTAssertTrue(optionalEnum.isNil)
     }
 
     // MARK: - Utilities
