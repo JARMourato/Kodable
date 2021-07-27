@@ -115,3 +115,11 @@ public enum DateCodingStrategy {
         return dateFormatter
     }
 }
+
+// MARK: Equatable Conformance
+
+extension CodableDate: Equatable where T: Equatable {
+    public static func == (lhs: CodableDate<T>, rhs: CodableDate<T>) -> Bool {
+        lhs.wrappedValue == rhs.wrappedValue
+    }
+}

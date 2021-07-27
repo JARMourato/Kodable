@@ -33,3 +33,11 @@ public struct Passthrough<T: Codable>: KodableTransform {
     public func transformToJSON(value: T) -> T { value }
     public init() {}
 }
+
+// MARK: Equatable Conformance
+
+extension Coding: Equatable where T: Equatable {
+    public static func == (lhs: Coding<T>, rhs: Coding<T>) -> Bool {
+        lhs.wrappedValue == rhs.wrappedValue
+    }
+}
