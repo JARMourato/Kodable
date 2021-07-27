@@ -163,7 +163,7 @@ extension KodableTransformable: EncodableProperty where OriginalType: Encodable 
     func encodeValueFromProperty(with propertyName: String, to container: inout EncodeContainer) throws {
         var (relevantContainer, relavantKey) = try container.nestedContainerAndKey(for: key ?? propertyName)
         let encodableValue = try transformer.transformToJSON(value: wrappedValue)
-        try relevantContainer.encodeIfPresent(encodableValue, with: relavantKey)
+        try relevantContainer.encode(encodableValue, with: relavantKey)
     }
 }
 

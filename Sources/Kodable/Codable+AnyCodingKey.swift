@@ -46,8 +46,8 @@ extension DecodeContainer {
 }
 
 extension EncodeContainer {
-    mutating func encodeIfPresent<T>(_ value: T?, with stringKey: String) throws where T: Encodable {
-        try encodeIfPresent(value, forKey: AnyCodingKey(stringKey))
+    mutating func encode<T>(_ value: T, with stringKey: String) throws where T: Encodable {
+        try encode(value, forKey: AnyCodingKey(stringKey))
     }
 
     mutating func nestedContainer(forKey stringKey: String) -> EncodeContainer {
