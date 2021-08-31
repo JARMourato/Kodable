@@ -170,7 +170,7 @@ print(dates.rfc3339Date.description) // Prints "1996-12-20 00:39:57 +0000"
 print(dates.timestamp.description) // Prints "2001-01-01 00:00:00 +0000"
 ````
 
-Note that there's no built-in support for ISO8601 dates with precision greater than millisecond (e.g. microsecond or nanosecond), because Apple doesn't officially supports such precision natively, yet. Should you feel the necessity to have those, PRs are always welcome!
+Note that there's no built-in support for ISO8601 dates with precision greater than millisecond (e.g. microsecond or nanosecond), because Apple doesn't officially supports such precision natively, yet. Should you feel the necessity to have those, or any other custom date formatter, you can implement your own `DateConvertible` and use `.custom(dateConvertible)` DateCodingStrategy. If you think your use case should make its way into the official library, PRs are always welcome!
 
 ## Advanced Usage
 
