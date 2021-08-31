@@ -605,7 +605,7 @@ final class KodableTests: XCTestCase {
         struct Dates: Kodable {
             @CodableDate(decoding: .enforceType) var iso8601: Date
             @CodableDate("iso8601") var isoDate: Date?
-            @CodableDate(.iso8601WithMillisecondPrecision, "iso8601_nanosecond_date") var isoNanosecondDate: Date?
+            @CodableDate(.iso8601WithMillisecondPrecision, "iso8601_millisecond_date") var isoNanosecondDate: Date?
             @CodableDate(.format("y-MM-dd"), "simple_date") var simpleDate: Date
             @CodableDate(.rfc2822, "rfc2822") var rfc2822Date: Date
             @CodableDate(.rfc3339, "rfc3339") var rfc3339Date: Date
@@ -778,7 +778,7 @@ final class KodableTests: XCTestCase {
             "parts": ["first": "random address"],
         ],
         "iso8601": "1996-12-19T16:39:57-08:00",
-        "iso8601_nanosecond_date": "2021-08-30T18:35:19.001Z",
+        "iso8601_millisecond_date": "2021-08-30T18:35:19.001Z",
         "duplicateIso": "1996-12-19T16:39:57-08:00",
         "simple_date": "2001-01-01",
         "rfc2822": "Thu, 19 Dec 1996 16:39:57 GMT",
