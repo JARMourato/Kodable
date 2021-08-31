@@ -83,6 +83,9 @@ public enum DateCodingStrategy {
     case rfc3339
     /// Time interval since 1970.
     case timestamp
+    /// A custom date parser to be used, instead of a string formatter.
+    /// - Note: it's strongly advised that your implementation of DateConvertible converts to and from Date in a lossless manner, although not required.
+    case custom(DateConvertible)
 
     public func date(from value: String) -> Date? {
         switch self {
@@ -94,6 +97,7 @@ public enum DateCodingStrategy {
         case .timestamp:
             guard let timestamp = Double(value) else { return nil }
             return Date(timeIntervalSince1970: timestamp)
+        case .custom(let parser): return parser.date(from: value)
         }
     }
 
@@ -105,6 +109,7 @@ public enum DateCodingStrategy {
         case .rfc2822: return DateCodingStrategy.rfc2822Formatter.string(from: date)
         case .rfc3339: return DateCodingStrategy.rfc3339Formatter.string(from: date)
         case .timestamp: return "\(date.timeIntervalSince1970)"
+        case .custom(let parser): return parser.string(from: date)
         }
     }
 
@@ -130,6 +135,11 @@ public enum DateCodingStrategy {
         formatters[dateFormat] = dateFormatter
         return dateFormatter
     }
+}
+
+public protocol DateConvertible {
+    func date(from value: String) -> Date?
+    func string(from date: Date) -> String
 }
 
 // MARK: Equatable Conformance
