@@ -97,7 +97,7 @@ public enum DateCodingStrategy {
         case .timestamp:
             guard let timestamp = Double(value) else { return nil }
             return Date(timeIntervalSince1970: timestamp)
-        case .custom(let parser): return parser.date(from: value)
+        case let .custom(parser): return parser.date(from: value)
         }
     }
 
@@ -109,7 +109,7 @@ public enum DateCodingStrategy {
         case .rfc2822: return DateCodingStrategy.rfc2822Formatter.string(from: date)
         case .rfc3339: return DateCodingStrategy.rfc3339Formatter.string(from: date)
         case .timestamp: return "\(date.timeIntervalSince1970)"
-        case .custom(let parser): return parser.string(from: date)
+        case let .custom(parser): return parser.string(from: date)
         }
     }
 

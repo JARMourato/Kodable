@@ -602,13 +602,13 @@ final class KodableTests: XCTestCase {
     }
 
     func testCodableDate() throws {
-        struct MyDateParser : DateConvertible {
-            func date(from value: String) -> Date? {
-                return Date(timeIntervalSince1970: 123)
+        struct MyDateParser: DateConvertible {
+            func date(from _: String) -> Date? {
+                Date(timeIntervalSince1970: 123)
             }
 
-            func string(from date: Date) -> String {
-                return "Kodable"
+            func string(from _: Date) -> String {
+                "Kodable"
             }
         }
 
