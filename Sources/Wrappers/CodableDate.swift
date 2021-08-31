@@ -114,6 +114,7 @@ public enum DateCodingStrategy {
         result.formatOptions.insert(.withFractionalSeconds)
         return result
     }()
+
     private static let rfc2822Formatter: DateFormatter = getFormatter("EEE, d MMM y HH:mm:ss zzz")
     private static let rfc3339Formatter: DateFormatter = getFormatter("yyyy-MM-dd'T'HH:mm:ssZ")
     private static var formatters: [String: Formatter] = [:]
