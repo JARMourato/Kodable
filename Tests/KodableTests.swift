@@ -601,10 +601,11 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(try optionalTransformer.transformFromJSON(value: nil), nil)
     }
 
-    func testCodableDate() {
+    func testCodableDate() throws {
         struct Dates: Kodable {
             @CodableDate(decoding: .enforceType) var iso8601: Date
             @CodableDate("iso8601") var isoDate: Date?
+            @CodableDate(.iso8601WithMillisecondPrecision, "iso8601_nanosecond_date") var isoNanosecondDate: Date?
             @CodableDate(.format("y-MM-dd"), "simple_date") var simpleDate: Date
             @CodableDate(.rfc2822, "rfc2822") var rfc2822Date: Date
             @CodableDate(.rfc3339, "rfc3339") var rfc3339Date: Date
@@ -624,46 +625,59 @@ final class KodableTests: XCTestCase {
             @CodableDate(.rfc2822, "rfc3339") var duplicateIso: Date
         }
 
-        do {
-            // Regular codable
-            let codableDecoded = try CodableDates.decodeJSON(from: KodableTests.json)
-            XCTAssertEqual(codableDecoded.iso8601.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(codableDecoded.duplicateIso.description, "1996-12-20 00:39:57 +0000")
+        // Regular codable
+        let codableDecoded = try CodableDates.decodeJSON(from: KodableTests.json)
+        XCTAssertEqual(codableDecoded.iso8601.description, "1996-12-20 00:39:57 +0000")
+        XCTAssertEqual(codableDecoded.duplicateIso.description, "1996-12-20 00:39:57 +0000")
 
-            let encodableJson = try codableDecoded.encodeJSON()
-            let newCodableObject = try CodableDates.decodeJSON(from: encodableJson)
-            XCTAssertEqual(newCodableObject.iso8601.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(newCodableObject.duplicateIso.description, "1996-12-20 00:39:57 +0000")
+        let encodableJson = try codableDecoded.encodeJSON()
+        let newCodableObject = try CodableDates.decodeJSON(from: encodableJson)
+        XCTAssertEqual(newCodableObject.iso8601.description, "1996-12-20 00:39:57 +0000")
+        XCTAssertEqual(newCodableObject.duplicateIso.description, "1996-12-20 00:39:57 +0000")
 
-            // ExtendedCodable
-            let decoded = try Dates.decodeJSON(from: KodableTests.json)
-            XCTAssertEqual(decoded.iso8601.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(decoded.isoDate?.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(decoded.simpleDate.description, "2001-01-01 00:00:00 +0000")
-            XCTAssertEqual(decoded.rfc2822Date.description, "1996-12-19 16:39:57 +0000")
-            XCTAssertEqual(decoded.rfc3339Date.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(decoded.nonOptionalTimestamp.description, "2001-01-01 00:00:00 +0000")
-            XCTAssertEqual(decoded.timestamp?.description, "2001-01-01 00:00:00 +0000")
-            XCTAssertEqual(decoded.defaultTimestamp.description, KodableTests.testDate.description)
-            XCTAssertEqual(decoded.optionalDate, nil)
-            XCTAssertEqual(decoded.ignoredDate, nil)
+        // ExtendedCodable
+        let decoded = try Dates.decodeJSON(from: KodableTests.json)
+        XCTAssertEqual(decoded.iso8601.description, "1996-12-20 00:39:57 +0000")
+        XCTAssertEqual(decoded.isoDate?.description, "1996-12-20 00:39:57 +0000")
+        XCTAssertEqual(decoded.isoNanosecondDate?.description, "2021-08-30 18:35:19 +0000")
+        XCTAssertEqual(decoded.simpleDate.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(decoded.rfc2822Date.description, "1996-12-19 16:39:57 +0000")
+        XCTAssertEqual(decoded.rfc3339Date.description, "1996-12-20 00:39:57 +0000")
+        XCTAssertEqual(decoded.nonOptionalTimestamp.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(decoded.timestamp?.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(decoded.defaultTimestamp.description, KodableTests.testDate.description)
+        XCTAssertEqual(decoded.optionalDate, nil)
+        XCTAssertEqual(decoded.ignoredDate, nil)
 
-            let json = try decoded.encodeJSON()
-            let newObject = try Dates.decodeJSON(from: json)
+        let json = try decoded.encodeJSON()
+        let newObject = try Dates.decodeJSON(from: json)
 
-            XCTAssertEqual(decoded.iso8601.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(newObject.isoDate?.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(newObject.simpleDate.description, "2001-01-01 00:00:00 +0000")
-            XCTAssertEqual(newObject.rfc2822Date.description, "1996-12-19 16:39:57 +0000")
-            XCTAssertEqual(newObject.rfc3339Date.description, "1996-12-20 00:39:57 +0000")
-            XCTAssertEqual(newObject.nonOptionalTimestamp.description, "2001-01-01 00:00:00 +0000")
-            XCTAssertEqual(newObject.timestamp?.description, "2001-01-01 00:00:00 +0000")
-            XCTAssertEqual(newObject.defaultTimestamp.description, KodableTests.testDate.description)
-            XCTAssertEqual(newObject.optionalDate, nil)
-            XCTAssertEqual(newObject.ignoredDate, nil)
-        } catch {
-            XCTFail(error.localizedDescription)
+        XCTAssertEqual(newObject.isoDate?.description, "1996-12-20 00:39:57 +0000")
+        XCTAssertEqual(newObject.isoNanosecondDate?.description, "2021-08-30 18:35:19 +0000")
+        XCTAssertEqual(newObject.simpleDate.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(newObject.rfc2822Date.description, "1996-12-19 16:39:57 +0000")
+        XCTAssertEqual(newObject.rfc3339Date.description, "1996-12-20 00:39:57 +0000")
+        XCTAssertEqual(newObject.nonOptionalTimestamp.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(newObject.timestamp?.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(newObject.defaultTimestamp.description, KodableTests.testDate.description)
+        XCTAssertEqual(newObject.optionalDate, nil)
+        XCTAssertEqual(newObject.ignoredDate, nil)
+    }
+
+    func testISO8601DateCodingStrategy() {
+        // Our tests don't cover microsecond and nanosecond precision dates because our date formatters don't actually support them yet.
+        let iso8601 = "2021-08-30T18:35:19Z"
+        let iso8601WithMillisecondPrecision = "2021-08-30T18:35:19.999Z"
+
+        func assert(_ dateString: String, against formatter: DateCodingStrategy) {
+            if let date = formatter.date(from: dateString) {
+                XCTAssertEqual(formatter.string(from: date), dateString)
+            } else {
+                XCTFail("Failed to initialize date from \(dateString) using \(formatter)")
+            }
         }
+        assert(iso8601, against: .iso8601)
+        assert(iso8601WithMillisecondPrecision, against: .iso8601WithMillisecondPrecision)
     }
 
     func testFailedCodableDate() {
@@ -764,6 +778,7 @@ final class KodableTests: XCTestCase {
             "parts": ["first": "random address"],
         ],
         "iso8601": "1996-12-19T16:39:57-08:00",
+        "iso8601_nanosecond_date": "2021-08-30T18:35:19.001Z",
         "duplicateIso": "1996-12-19T16:39:57-08:00",
         "simple_date": "2001-01-01",
         "rfc2822": "Thu, 19 Dec 1996 16:39:57 GMT",
