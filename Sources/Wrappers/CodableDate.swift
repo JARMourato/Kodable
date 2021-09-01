@@ -69,16 +69,27 @@ extension Optional: DateProtocol where Wrapped == Date {}
 // MARK: Coding Strategy
 
 public enum DateCodingStrategy {
+    /// Custom date formatter.
     case format(String)
+    /// Uses the iOS native `ISO8601DateFormatter`.
     case iso8601
+    /// Uses the iOS native `ISO8601DateFormatter` with `DateFormatter.Options.withFractionalSeconds`.
+    /// - Note: If you pass a date with greater precision than milliseconds, it will truncate and parse up to milliseconds only. So "2021-08-30T18:35:19.209999Z" would end up being parsed as "2021-08-30T18:35:19.209Z".
+    case iso8601WithMillisecondPrecision
+    /// Implements the RFC2822 date format: "EEE, d MMM y HH:mm:ss zzz"
+    /// - SeeAlso: https://datatracker.ietf.org/doc/html/rfc2822
     case rfc2822
+    /// Implements the RFC3339 date format: "yyyy-MM-dd'T'HH:mm:ssZ"
+    /// - SeeAlso: https://datatracker.ietf.org/doc/html/rfc3339
     case rfc3339
+    /// Time interval since 1970.
     case timestamp
 
     public func date(from value: String) -> Date? {
         switch self {
         case let .format(format): return DateCodingStrategy.getFormatter(format).date(from: value)
         case .iso8601: return DateCodingStrategy.iso8601Formatter.date(from: value)
+        case .iso8601WithMillisecondPrecision: return DateCodingStrategy.iso8601WithFractionalSecondsFormatter.date(from: value)
         case .rfc2822: return DateCodingStrategy.rfc2822Formatter.date(from: value)
         case .rfc3339: return DateCodingStrategy.rfc3339Formatter.date(from: value)
         case .timestamp:
@@ -91,6 +102,7 @@ public enum DateCodingStrategy {
         switch self {
         case let .format(format): return DateCodingStrategy.getFormatter(format).string(from: date)
         case .iso8601: return DateCodingStrategy.iso8601Formatter.string(from: date)
+        case .iso8601WithMillisecondPrecision: return DateCodingStrategy.iso8601WithFractionalSecondsFormatter.string(from: date)
         case .rfc2822: return DateCodingStrategy.rfc2822Formatter.string(from: date)
         case .rfc3339: return DateCodingStrategy.rfc3339Formatter.string(from: date)
         case .timestamp: return "\(date.timeIntervalSince1970)"
@@ -98,6 +110,12 @@ public enum DateCodingStrategy {
     }
 
     private static let iso8601Formatter = ISO8601DateFormatter()
+    private static let iso8601WithFractionalSecondsFormatter: ISO8601DateFormatter = {
+        let result = ISO8601DateFormatter()
+        result.formatOptions.insert(.withFractionalSeconds)
+        return result
+    }()
+
     private static let rfc2822Formatter: DateFormatter = getFormatter("EEE, d MMM y HH:mm:ss zzz")
     private static let rfc3339Formatter: DateFormatter = getFormatter("yyyy-MM-dd'T'HH:mm:ssZ")
     private static var formatters: [String: Formatter] = [:]
