@@ -602,6 +602,16 @@ final class KodableTests: XCTestCase {
     }
 
     func testCodableDate() throws {
+        struct MyDateParser: DateConvertible {
+            func date(from _: String) -> Date? {
+                Date(timeIntervalSince1970: 123)
+            }
+
+            func string(from _: Date) -> String {
+                "Kodable"
+            }
+        }
+
         struct Dates: Kodable {
             @CodableDate(decoding: .enforceType) var iso8601: Date
             @CodableDate("iso8601") var isoDate: Date?
@@ -611,6 +621,7 @@ final class KodableTests: XCTestCase {
             @CodableDate(.rfc3339, "rfc3339") var rfc3339Date: Date
             @CodableDate(.timestamp, "timestamp", decoding: .lossless) var nonOptionalTimestamp: Date
             @CodableDate(.timestamp, "timestamp", decoding: .lossless) var timestamp: Date?
+            @CodableDate(.custom(MyDateParser()), "custom_date") var customDate: Date?
             @CodableDate var optionalDate: Date?
 
             @CodableDate(.timestamp, "timestamp_non_existent", default: KodableTests.testDate)
@@ -645,6 +656,7 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(decoded.rfc3339Date.description, "1996-12-20 00:39:57 +0000")
         XCTAssertEqual(decoded.nonOptionalTimestamp.description, "2001-01-01 00:00:00 +0000")
         XCTAssertEqual(decoded.timestamp?.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(decoded.customDate?.description, "1970-01-01 00:02:03 +0000")
         XCTAssertEqual(decoded.defaultTimestamp.description, KodableTests.testDate.description)
         XCTAssertEqual(decoded.optionalDate, nil)
         XCTAssertEqual(decoded.ignoredDate, nil)
@@ -659,6 +671,7 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(newObject.rfc3339Date.description, "1996-12-20 00:39:57 +0000")
         XCTAssertEqual(newObject.nonOptionalTimestamp.description, "2001-01-01 00:00:00 +0000")
         XCTAssertEqual(newObject.timestamp?.description, "2001-01-01 00:00:00 +0000")
+        XCTAssertEqual(newObject.customDate?.description, "1970-01-01 00:02:03 +0000")
         XCTAssertEqual(newObject.defaultTimestamp.description, KodableTests.testDate.description)
         XCTAssertEqual(newObject.optionalDate, nil)
         XCTAssertEqual(newObject.ignoredDate, nil)
@@ -784,6 +797,7 @@ final class KodableTests: XCTestCase {
         "rfc2822": "Thu, 19 Dec 1996 16:39:57 GMT",
         "rfc3339": "1996-12-19T16:39:57-08:00",
         "timestamp": 978_307_200.0,
+        "custom_date": "lorem ipsum",
         "id": 2_623_488,
         "title": "     Create New Project       ",
         "empty": "       ",
