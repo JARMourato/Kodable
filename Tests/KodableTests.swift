@@ -443,7 +443,11 @@ final class KodableTests: XCTestCase {
         }
 
         struct LossyArray: Kodable {
-            @Coding("failable_array", decoding: .lossy) var array: [String]
+            struct LossyStruct: Kodable {
+                @Coding("name", decoding: .lossless) var name: String
+            }
+
+            @Coding("failable_lossy_array", decoding: .lossy) var array: [LossyStruct]
         }
 
         struct EnforcedTypeArray: Kodable {
@@ -473,7 +477,8 @@ final class KodableTests: XCTestCase {
             XCTAssertEqual(lossless.array, ["1", "1.5", "2", "true", "3", "4"])
 
             let lossy = try LossyArray.decodeJSON(from: KodableTests.json)
-            XCTAssertEqual(lossy.array, ["1", "2", "3"])
+            XCTAssertEqual(lossy.array[0].name, "3")
+            XCTAssertEqual(lossy.array[1].name, "john")
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -829,6 +834,7 @@ final class KodableTests: XCTestCase {
         "two": [1, 2, 3, 4],
         "three": "Invalid Value",
         "failable_array": ["1", 1.5, "2", true, "3", nil, 4],
+        "failable_lossy_array": [["name": 3], ["nam": "kevin"], ["name": "john"]],
         "age": "18",
         "cm_height": "170",
         "children_count": "invalid",
