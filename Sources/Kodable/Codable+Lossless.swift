@@ -41,7 +41,7 @@ struct LosslessValue<T: Decodable>: Decodable {
         guard let anyLosslessDecodable = T.self as? LosslessDecodable.Type, let rawValue = types.lazy.compactMap({ $0(decoder) }).first, let value = anyLosslessDecodable.init("\(rawValue)") as? T else {
             throw Corrupted()
         }
-        
+
         self.value = value
     }
 }
@@ -54,7 +54,7 @@ struct LossyDecodableArray<Element: Decodable>: Decodable {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.singleValueContainer()
-            self.element = try? container.decode(Element.self)
+            element = try? container.decode(Element.self)
         }
     }
 
@@ -63,7 +63,7 @@ struct LossyDecodableArray<Element: Decodable>: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let wrappers = try container.decode([ElementWrapper].self)
-        self.elements = wrappers.compactMap(\.element)
+        elements = wrappers.compactMap(\.element)
     }
 }
 
