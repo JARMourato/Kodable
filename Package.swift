@@ -13,7 +13,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/wickwirew/Runtime", from: "2.2.2"),
-        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.0.0-beta.1"),
+        .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.1.0"),
     ],
     targets: [
         .target(name: "Kodable", dependencies: ["Runtime"], path: "Sources"),
