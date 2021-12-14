@@ -834,7 +834,7 @@ final class KodableTests: XCTestCase {
         "two": [1, 2, 3, 4],
         "three": "Invalid Value",
         "failable_array": ["1", 1.5, "2", true, "3", nil, 4],
-        "failable_lossy_array": [["name": 3], ["nam": "kevin"], ["name": "john"]],
+        "failable_lossy_array": [["name": 3], ["dragonite": "this key will fail to be parsed"], ["name": "john"]],
         "age": "18",
         "cm_height": "170",
         "children_count": "invalid",
