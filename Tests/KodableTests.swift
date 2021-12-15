@@ -442,17 +442,21 @@ final class KodableTests: XCTestCase {
             @Coding("failable_array", decoding: .lossless) var array: [String]?
         }
 
-        struct LossyArray: Kodable {
-            struct LossyStruct: Kodable {
-                @Coding("name", decoding: .lossless) var name: String
-            }
+        struct LossyStruct: Kodable {
+            @Coding("name", decoding: .lossless) var name: String
+        }
 
+        struct LossyArray: Kodable {
             @Coding("failable_lossy_array", decoding: .lossy) var array: [LossyStruct]
         }
 
         struct EnforcedTypeArray: Kodable {
             @Coding("failable_array", decoding: .enforceType)
             var array: [String]
+        }
+
+        struct InvalidLosslessArray: Kodable {
+            @Coding("failable_lossy_array", decoding: .lossless) var array: [LossyStruct]
         }
 
         struct MissingArray: Kodable {
@@ -484,6 +488,7 @@ final class KodableTests: XCTestCase {
         }
 
         assert(try EnforcedTypeArray.decodeJSON(from: KodableTests.json), throws: KodableError.invalidValueForPropertyWithKey("failable_array"))
+        assert(try InvalidLosslessArray.decodeJSON(from: KodableTests.json), throws: KodableError.invalidValueForPropertyWithKey("failable_lossy_array"))
         assert(try MissingArray.decodeJSON(from: KodableTests.json), throws: KodableError.nonOptionalValueMissing(property: "missing_array"))
     }
 
