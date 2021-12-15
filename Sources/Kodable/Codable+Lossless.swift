@@ -4,9 +4,7 @@ import Foundation
 
 public typealias LosslessDecodable = LosslessStringConvertible & Decodable
 
-// MARK: Helper type to decode lossless values
-
-private struct Corrupted: Error {}
+// MARK: Helper types to decode lossless values
 
 struct LosslessValue<T: LosslessDecodable>: Decodable {
     var value: T
@@ -17,27 +15,6 @@ struct LosslessValue<T: LosslessDecodable>: Decodable {
         }
 
         self.value = value
-    }
-}
-
-// MARK: Helper type to decode lossy arrays
-
-struct LossyDecodableArray<Element: Decodable>: Decodable {
-    private struct ElementWrapper: Decodable {
-        var element: Element?
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            element = try? container.decode(Element.self)
-        }
-    }
-
-    var elements: [Element]
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let wrappers = try container.decode([ElementWrapper].self)
-        elements = wrappers.compactMap(\.element)
     }
 }
 
@@ -63,6 +40,29 @@ struct LosslessDecodableArray<Element: Decodable>: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         elements = try container.decode([ElementWrapper].self).compactMap(\.element)
+    }
+}
+
+private struct Corrupted: Error {}
+
+// MARK: Helper type to decode lossy arrays
+
+struct LossyDecodableArray<Element: Decodable>: Decodable {
+    private struct ElementWrapper: Decodable {
+        var element: Element?
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            element = try? container.decode(Element.self)
+        }
+    }
+
+    var elements: [Element]
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let wrappers = try container.decode([ElementWrapper].self)
+        elements = wrappers.compactMap(\.element)
     }
 }
 
