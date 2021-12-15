@@ -6,39 +6,13 @@ public typealias LosslessDecodable = LosslessStringConvertible & Decodable
 
 // MARK: Helper type to decode lossless values
 
-struct LosslessValue<T: Decodable>: Decodable {
+private struct Corrupted: Error {}
+
+struct LosslessValue<T: LosslessDecodable>: Decodable {
     var value: T
 
-    // Nested Types
-    struct Corrupted: Error {}
-
     init(from decoder: Decoder) throws {
-        func decode<T: LosslessDecodable>(_: T.Type) -> (Decoder) -> LosslessDecodable? {
-            { try? T(from: $0) }
-        }
-
-        func decodeBoolFromNSNumber() -> (Decoder) -> LosslessDecodable? {
-            { (try? Int(from: $0)).flatMap { Bool(exactly: NSNumber(value: $0)) } }
-        }
-
-        // The order of the types matter!!
-        let types: [(Decoder) -> LosslessDecodable?] = [
-            decode(String.self),
-            decodeBoolFromNSNumber(),
-            decode(Bool.self),
-            decode(Int.self),
-            decode(Int8.self),
-            decode(Int16.self),
-            decode(Int64.self),
-            decode(UInt.self),
-            decode(UInt8.self),
-            decode(UInt16.self),
-            decode(UInt64.self),
-            decode(Double.self),
-            decode(Float.self),
-        ]
-
-        guard let anyLosslessDecodable = T.self as? LosslessDecodable.Type, let rawValue = types.lazy.compactMap({ $0(decoder) }).first, let value = anyLosslessDecodable.init("\(rawValue)") as? T else {
+        guard let rawValue = Self.losslessDecode(from: decoder), let value = T("\(rawValue)") else {
             throw Corrupted()
         }
 
@@ -67,6 +41,31 @@ struct LossyDecodableArray<Element: Decodable>: Decodable {
     }
 }
 
+struct LosslessDecodableArray<Element: Decodable>: Decodable {
+    private struct ElementWrapper: Decodable {
+        var element: Element?
+
+        init(from decoder: Decoder) throws {
+            guard let stringConvertibleElement = Element.self as? LosslessStringConvertible.Type else {
+                throw Corrupted()
+            }
+            guard let rawValue = Self.losslessDecode(from: decoder) else {
+                element = nil
+                return
+            }
+            let value = stringConvertibleElement.init("\(rawValue)") as? Element
+            element = value
+        }
+    }
+
+    var elements: [Element]
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        elements = try container.decode([ElementWrapper].self).compactMap(\.element)
+    }
+}
+
 extension Decodable where Self: LosslessStringConvertible {
     static func losslessDecode(from container: DecodeContainer, with key: String) throws -> Self {
         func decode<T: Decodable>(_ type: T.Type) -> T? {
@@ -88,6 +87,37 @@ extension Decodable where Self: LosslessStringConvertible {
         let value = try? decode(Self.self)
 
         return try value ?? decode(LosslessValue<Self>.self)?.value
+    }
+}
+
+private extension Decodable {
+    static func losslessDecode(from decoder: Decoder) -> LosslessDecodable? {
+        func decode<T: LosslessDecodable>(_: T.Type) -> (Decoder) -> LosslessDecodable? {
+            { try? T(from: $0) }
+        }
+
+        func decodeBoolFromNSNumber() -> (Decoder) -> LosslessDecodable? {
+            { (try? Int(from: $0)).flatMap { Bool(exactly: NSNumber(value: $0)) } }
+        }
+
+        // The order of the types matter!!
+        let types: [(Decoder) -> LosslessDecodable?] = [
+            decode(String.self),
+            decodeBoolFromNSNumber(),
+            decode(Bool.self),
+            decode(Int.self),
+            decode(Int8.self),
+            decode(Int16.self),
+            decode(Int64.self),
+            decode(UInt.self),
+            decode(UInt8.self),
+            decode(UInt16.self),
+            decode(UInt64.self),
+            decode(Double.self),
+            decode(Float.self),
+        ]
+
+        return types.lazy.compactMap({ $0(decoder) }).first
     }
 }
 
@@ -120,21 +150,7 @@ extension Array: DecodableSequence where Element: Decodable {
         switch decoding {
         case .enforceType: return try container.decode([Element].self, with: key)
         case .lossy: return try container.decode(LossyDecodableArray<Element>.self, with: key).elements
-        case .lossless:
-            let decoder = try container.superDecoder(forKey: key)
-            var container = try decoder.unkeyedContainer()
-
-            var elements: [Element] = []
-            while !container.isAtEnd {
-                do {
-                    guard let value = try container.decodeIfPresent(LosslessValue<Element>.self)?.value else { continue }
-                    elements.append(value)
-                } catch {
-                    _ = try? container.decode(AnyValue.self)
-                }
-            }
-
-            return elements
+        case .lossless: return try container.decode(LosslessDecodableArray<Element>.self, with: key).elements
         }
     }
 }
