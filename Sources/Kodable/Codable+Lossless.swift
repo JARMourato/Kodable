@@ -117,7 +117,7 @@ private extension Decodable {
             decode(Float.self),
         ]
 
-        return types.lazy.compactMap({ $0(decoder) }).first
+        return types.lazy.compactMap { $0(decoder) }.first
     }
 }
 
