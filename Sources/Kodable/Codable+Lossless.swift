@@ -10,7 +10,7 @@ struct LosslessValue<T: LosslessDecodable>: Decodable {
     var value: T
 
     init(from decoder: Decoder) throws {
-        guard let rawValue = Self.losslessDecode(from: decoder), let value = T("\(rawValue)") else {
+        guard let rawValue = T.losslessDecode(from: decoder), let value = T("\(rawValue)") else {
             throw Corrupted()
         }
 
@@ -26,7 +26,7 @@ struct LosslessDecodableArray<Element: Decodable>: Decodable {
             guard let stringConvertibleElement = Element.self as? LosslessStringConvertible.Type else {
                 throw Corrupted()
             }
-            guard let rawValue = Self.losslessDecode(from: decoder) else {
+            guard let rawValue = Element.losslessDecode(from: decoder) else {
                 element = nil
                 return
             }
@@ -96,10 +96,6 @@ private extension Decodable {
             { try? T(from: $0) }
         }
 
-        func decodeBoolFromNSNumber() -> (Decoder) -> LosslessDecodable? {
-            { (try? Int(from: $0)).flatMap { Bool(exactly: NSNumber(value: $0)) } }
-        }
-
         // The order of the types matter!!
         let types: [(Decoder) -> LosslessDecodable?] = [
             decode(String.self),
@@ -118,6 +114,13 @@ private extension Decodable {
         ]
 
         return types.lazy.compactMap { $0(decoder) }.first
+    }
+
+    private static func decodeBoolFromNSNumber() -> (Decoder) -> LosslessDecodable? {
+        guard self is Bool.Type else {
+            return { _ in nil }
+        }
+        return { (try? Int(from: $0)).flatMap { Bool(exactly: NSNumber(value: $0)) } }
     }
 }
 
