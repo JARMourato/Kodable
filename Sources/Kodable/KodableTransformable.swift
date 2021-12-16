@@ -34,12 +34,12 @@ public protocol KodableTransform {
 
     /// - Note: this might crash if an instance of a type uses the property wrapper with a non-optional type
     ///         and it can't be decoded, and a default value wasn't provided.
-    public var wrappedValue: TargetType {
+    open var wrappedValue: TargetType {
         get { _wrappedValue(TargetType.self) } // This is needed so that we can return TargetType as the correct type
         set { _value = newValue }
     }
 
-    internal init(key: String? = nil, decoding: PropertyDecoding, encodeAsNullIfNil: Bool, modifiers: [KodableModifier<TargetType>], defaultValue: TargetType?) {
+    public init(key: String? = nil, decoding: PropertyDecoding, encodeAsNullIfNil: Bool, modifiers: [KodableModifier<TargetType>], defaultValue: TargetType?) {
         self.key = key
         self.modifiers = modifiers
         self.decoding = decoding

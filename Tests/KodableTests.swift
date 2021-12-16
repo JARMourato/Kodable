@@ -442,13 +442,21 @@ final class KodableTests: XCTestCase {
             @Coding("failable_array", decoding: .lossless) var array: [String]?
         }
 
+        struct LossyStruct: Kodable {
+            @Coding("name", decoding: .lossless) var name: String
+        }
+
         struct LossyArray: Kodable {
-            @Coding("failable_array", decoding: .lossy) var array: [String]
+            @Coding("failable_lossy_array", decoding: .lossy) var array: [LossyStruct]
         }
 
         struct EnforcedTypeArray: Kodable {
             @Coding("failable_array", decoding: .enforceType)
             var array: [String]
+        }
+
+        struct InvalidLosslessArray: Kodable {
+            @Coding("failable_lossy_array", decoding: .lossless) var array: [LossyStruct]
         }
 
         struct MissingArray: Kodable {
@@ -473,12 +481,14 @@ final class KodableTests: XCTestCase {
             XCTAssertEqual(lossless.array, ["1", "1.5", "2", "true", "3", "4"])
 
             let lossy = try LossyArray.decodeJSON(from: KodableTests.json)
-            XCTAssertEqual(lossy.array, ["1", "2", "3"])
+            XCTAssertEqual(lossy.array[0].name, "3")
+            XCTAssertEqual(lossy.array[1].name, "john")
         } catch {
             XCTFail(error.localizedDescription)
         }
 
         assert(try EnforcedTypeArray.decodeJSON(from: KodableTests.json), throws: KodableError.invalidValueForPropertyWithKey("failable_array"))
+        assert(try InvalidLosslessArray.decodeJSON(from: KodableTests.json), throws: KodableError.invalidValueForPropertyWithKey("failable_lossy_array"))
         assert(try MissingArray.decodeJSON(from: KodableTests.json), throws: KodableError.nonOptionalValueMissing(property: "missing_array"))
     }
 
@@ -829,6 +839,7 @@ final class KodableTests: XCTestCase {
         "two": [1, 2, 3, 4],
         "three": "Invalid Value",
         "failable_array": ["1", 1.5, "2", true, "3", nil, 4],
+        "failable_lossy_array": [["name": 3], ["dragonite": "this key will fail to be parsed"], ["name": "john"]],
         "age": "18",
         "cm_height": "170",
         "children_count": "invalid",

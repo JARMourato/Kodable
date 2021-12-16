@@ -36,10 +36,6 @@ extension DecodeContainer {
         try nestedContainer(keyedBy: AnyCodingKey.self, forKey: AnyCodingKey(stringKey))
     }
 
-    func superDecoder(forKey stringKey: String) throws -> Decoder {
-        try superDecoder(forKey: AnyCodingKey(stringKey))
-    }
-
     func containsValue(for key: String) -> Bool {
         contains(AnyCodingKey(key))
     }
