@@ -481,7 +481,7 @@ final class KodableTests: XCTestCase {
             XCTAssertEqual(lossless.array, ["1", "1.5", "2", "true", "3", "4"])
 
             let lossy = try LossyArray.decodeJSON(from: KodableTests.json)
-            XCTAssertEqual(lossy.array[0].name, "3")
+            XCTAssertEqual(lossy.array[0].name, "1")
             XCTAssertEqual(lossy.array[1].name, "john")
         } catch {
             XCTFail(error.localizedDescription)
@@ -839,7 +839,7 @@ final class KodableTests: XCTestCase {
         "two": [1, 2, 3, 4],
         "three": "Invalid Value",
         "failable_array": ["1", 1.5, "2", true, "3", nil, 4],
-        "failable_lossy_array": [["name": 3], ["dragonite": "this key will fail to be parsed"], ["name": "john"]],
+        "failable_lossy_array": [["name": 1], ["dragonite": "this key will fail to be parsed"], ["name": "john"]],
         "age": "18",
         "cm_height": "170",
         "children_count": "invalid",
