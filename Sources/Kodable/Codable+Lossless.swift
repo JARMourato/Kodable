@@ -68,15 +68,19 @@ struct LossyDecodableArray<Element: Decodable>: Decodable {
 
 extension Decodable where Self: LosslessStringConvertible {
     static func losslessDecode(from container: DecodeContainer, with key: String) throws -> Self {
-        func decode<T: Decodable>(_ type: T.Type) -> T? {
-            try? container.decode(type, with: key)
+        func decode<T: Decodable>(_ type: T.Type) throws -> T {
+            try container.decode(type, with: key)
         }
 
-        guard let decoded = decode(Self.self) ?? decode(LosslessValue<Self>.self)?.value else {
-            if container.containsValue(for: key) { throw KodableError.invalidValueForPropertyWithKey(key) }
-            throw KodableError.nonOptionalValueMissing(property: key)
+        do {
+            return try failableExpression(decode(Self.self), withFallback: decode(LosslessValue<Self>.self).value)
+        } catch {
+            if container.containsValue(for: key) {
+                throw KodableError.invalidValueForPropertyWithKey(key, underlyingError: error)
+            } else {
+                throw KodableError.nonOptionalValueMissing(property: key, type: type(of: Self.self), underlyingError: error)
+            }
         }
-        return decoded
     }
 
     static func losslessDecodeIfPresent(from container: DecodeContainer, with key: String) throws -> Self? {
@@ -134,11 +138,15 @@ protocol DecodableSequence {
 
 extension DecodableSequence {
     static func decodeSequence(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self {
-        guard let decoded = try? sequenceDecoding(from: container, with: key, decoding: decoding) else {
-            if container.containsValue(for: key) { throw KodableError.invalidValueForPropertyWithKey(key) }
-            throw KodableError.nonOptionalValueMissing(property: key)
+        do {
+            return try sequenceDecoding(from: container, with: key, decoding: decoding)
+        } catch {
+            if container.containsValue(for: key) {
+                throw KodableError.invalidValueForPropertyWithKey(key, underlyingError: error)
+            } else {
+                throw KodableError.nonOptionalValueMissing(property: key, type: type(of: Self.self), underlyingError: error)
+            }
         }
-        return decoded
     }
 
     static func decodeSequenceIfPresent(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self? {

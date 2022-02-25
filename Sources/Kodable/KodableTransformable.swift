@@ -142,7 +142,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
                 valueDecoded = try relevantContainer.decodeIfPresent(OriginalType.self, forKey: AnyCodingKey(relevantKey))
             } catch {
                 guard case DecodingError.typeMismatch = error else { throw error }
-                throw KodableError.invalidValueForPropertyWithKey(relevantKey)
+                throw KodableError.invalidValueForPropertyWithKey(relevantKey, underlyingError: error)
             }
         }
 
@@ -150,7 +150,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let flattened = valueDecoded.flattened()
 
         guard let value = flattened else {
-            throw KodableError.nonOptionalValueMissing(property: stringKeyPath)
+            throw KodableError.nonOptionalValueMissing(property: stringKeyPath, type: type(of: T.To.self), underlyingError: nil)
         }
 
         return value as! OriginalType
