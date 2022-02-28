@@ -29,19 +29,23 @@ public extension Dekodable {
     // MARK: Decoding logic
 
     mutating func decode(from decoder: Decoder) throws {
-        let container = try decoder.anyDecodingContainer()
+        do {
+            let container = try decoder.anyDecodingContainer()
 
-        let currentType = try Reflection.typeInformation(of: type(of: self))
+            let currentType = try Reflection.typeInformation(of: type(of: self))
 
-        for property in currentType.properties {
-            if let decodable = try? property.get(from: self) as? DecodableProperty {
-                try decodeExtendedProperty(decodable, with: property.name, from: container)
-            } else {
-                // Ignores all properties that don't conform to `Decodable`
-                guard let decodable = property.type as? Decodable.Type else { return }
-                let value = try decodable.decodeIfPresent(from: container, with: property.name) as Any
-                try property.set(value: value, on: &self)
+            for property in currentType.properties {
+                if let decodable = try? property.get(from: self) as? DecodableProperty {
+                    try decodeExtendedProperty(decodable, with: property.name, from: container)
+                } else {
+                    // Ignores all properties that don't conform to `Decodable`
+                    guard let decodable = property.type as? Decodable.Type else { return }
+                    let value = try decodable.decodeIfPresent(from: container, with: property.name) as Any
+                    try property.set(value: value, on: &self)
+                }
             }
+        } catch {
+            throw KodableError.failedToDecode(type: type(of: self), underlyingError: error)
         }
     }
 

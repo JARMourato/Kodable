@@ -112,7 +112,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let finalValue = overrideValueDecoded(convertedValue) // 2: Go through all value modifiers and override the decoded value
         let valueIsValid = validate(finalValue) // 3: Go through the validators and check that none fails
 
-        guard valueIsValid else { throw KodableError.validationFailed(property: propertyName, parsedValue: finalValue) }
+        guard valueIsValid else { throw InternalError.validationFailed(property: propertyName, parsedValue: finalValue) }
 
         wrappedValue = finalValue
     }
@@ -141,8 +141,8 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
             do {
                 valueDecoded = try relevantContainer.decodeIfPresent(OriginalType.self, forKey: AnyCodingKey(relevantKey))
             } catch {
-                guard case DecodingError.typeMismatch = error else { throw error }
-                throw KodableError.invalidValueForPropertyWithKey(relevantKey, type: type(of: T.To.self), underlyingError: error)
+//                guard case DecodingError.typeMismatch = error else { throw error }
+                throw InternalError.invalidValueForPropertyWithKey(relevantKey, type: type(of: T.To.self), underlyingError: .externalError(error))
             }
         }
 
@@ -150,7 +150,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let flattened = valueDecoded.flattened()
 
         guard let value = flattened else {
-            throw KodableError.nonOptionalValueMissing(property: stringKeyPath, type: type(of: T.To.self), underlyingError: nil)
+            throw InternalError.nonOptionalValueMissing(property: stringKeyPath, type: type(of: T.To.self), underlyingError: nil)
         }
 
         return value as! OriginalType
