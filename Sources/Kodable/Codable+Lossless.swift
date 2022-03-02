@@ -43,7 +43,7 @@ struct LosslessDecodableArray<Element: Decodable>: Decodable {
     }
 }
 
-private struct Corrupted: Error {}
+private struct Corrupted: Swift.Error {}
 
 // MARK: Helper type to decode lossy arrays
 
@@ -75,11 +75,7 @@ extension Decodable where Self: LosslessStringConvertible {
         do {
             return try failableExpression(decode(Self.self), withFallback: decode(LosslessValue<Self>.self).value)
         } catch {
-            if container.containsValue(for: key) {
-                throw InternalError.invalidValueForPropertyWithKey(key, type: type(of: Self.self), underlyingError: .externalError(error))
-            } else {
-                throw InternalError.nonOptionalValueMissing(property: key, type: type(of: Self.self), underlyingError: .externalError(error))
-            }
+            throw Error.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .wrappedError(error))
         }
     }
 
@@ -141,11 +137,7 @@ extension DecodableSequence {
         do {
             return try sequenceDecoding(from: container, with: key, decoding: decoding)
         } catch {
-            if container.containsValue(for: key) {
-                throw InternalError.invalidValueForPropertyWithKey(key, type: type(of: Self.self), underlyingError: .externalError(error))
-            } else {
-                throw InternalError.nonOptionalValueMissing(property: key, type: type(of: Self.self), underlyingError: .externalError(error))
-            }
+            throw Error.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .wrappedError(error))
         }
     }
 

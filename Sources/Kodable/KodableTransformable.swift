@@ -112,7 +112,9 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let finalValue = overrideValueDecoded(convertedValue) // 2: Go through all value modifiers and override the decoded value
         let valueIsValid = validate(finalValue) // 3: Go through the validators and check that none fails
 
-        guard valueIsValid else { throw InternalError.validationFailed(property: propertyName, parsedValue: finalValue) }
+        guard valueIsValid else {
+            throw Error.validationFailed(type: TargetType.self, property: propertyName, parsedValue: finalValue)
+        }
 
         wrappedValue = finalValue
     }
@@ -141,8 +143,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
             do {
                 valueDecoded = try relevantContainer.decodeIfPresent(OriginalType.self, forKey: AnyCodingKey(relevantKey))
             } catch {
-//                guard case DecodingError.typeMismatch = error else { throw error }
-                throw InternalError.invalidValueForPropertyWithKey(relevantKey, type: type(of: T.To.self), underlyingError: .externalError(error))
+                throw Error.failedDecodingProperty(property: propertyName, key: relevantKey, type: TargetType.self, underlyingError: .wrappedError(error))
             }
         }
 
@@ -150,7 +151,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let flattened = valueDecoded.flattened()
 
         guard let value = flattened else {
-            throw InternalError.nonOptionalValueMissing(property: stringKeyPath, type: type(of: T.To.self), underlyingError: nil)
+            throw Error.failedDecodingProperty(property: propertyName, key: stringKeyPath, type: TargetType.self, underlyingError: .wrappedError(DataNotFound()))
         }
 
         return value as! OriginalType
@@ -181,4 +182,9 @@ public enum PropertyDecoding {
     /// This option is only relevant to `Collection` types. It allows to decode elements, ignoring individual elements for which decoding failed.
     /// if selected for non compatible types, `enforceType` will be used
     case lossy
+}
+
+// MARK: - Internal Error
+struct DataNotFound: Swift.Error, CustomStringConvertible {
+    var description: String { "Data Not Found" }
 }

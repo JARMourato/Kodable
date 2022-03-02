@@ -1,9 +1,9 @@
 import Foundation
 
 
-struct FailableExpressionWithFallbackError: Error {
-    let main: Error
-    let fallback: Error
+struct FailableExpressionWithFallbackError: Swift.Error {
+    let main: Swift.Error
+    let fallback: Swift.Error
 }
 
 // MARK: Helper extensions

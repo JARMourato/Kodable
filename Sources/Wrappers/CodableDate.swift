@@ -46,7 +46,7 @@ public struct DateTransformer<T: DateProtocol>: KodableTransform {
         let typeIsOptional = try Reflection.typeInformation(of: T.self).kind == .optional
 
         guard !typeIsOptional, dateValue == nil else { return dateValue as! T }
-        throw InternalError.failedToParseDate(source: value ?? "nil")
+        throw Error.failedToParseDate(source: value ?? "nil")
     }
 
     public func transformToJSON(value: T) throws -> String? {
