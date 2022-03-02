@@ -185,6 +185,7 @@ public enum PropertyDecoding {
 }
 
 // MARK: - Internal Error
+
 struct DataNotFound: Swift.Error, CustomStringConvertible {
     var description: String { "Data Not Found" }
 }

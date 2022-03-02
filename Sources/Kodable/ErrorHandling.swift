@@ -24,12 +24,12 @@ extension Error: CustomStringConvertible {
 
     internal var nextIteration: (Node, Error)? {
         switch self {
-        case .wrappedError(let error):
+        case let .wrappedError(error):
             guard let dekodingError = error as? Error else { return nil }
             return dekodingError.nextIteration
-        case .failedDecodingType(_, let underlyingError):
+        case let .failedDecodingType(_, underlyingError):
             return underlyingError.nextIteration
-        case .failedDecodingProperty(let property, let key, let type, let underlyingError):
+        case let .failedDecodingProperty(property, key, type, underlyingError):
             return (Node(type: type, propertyName: property, key: key), underlyingError)
         case .failedToParseDate, .validationFailed:
             return nil
@@ -45,8 +45,8 @@ extension Error: CustomStringConvertible {
     internal func buildErrorMessage(nodes: [Node], error: Error) -> String {
         let spacing = "  "
         var string = ""
-        for i in 0...nodes.count {
-            let spaces = Array(repeating: spacing, count: i+1).joined(separator: "")
+        for i in 0 ... nodes.count {
+            let spaces = Array(repeating: spacing, count: i + 1).joined(separator: "")
             if i == nodes.count {
                 string += "\n\(error.errorDescription)\n\n"
             } else {
@@ -92,11 +92,11 @@ extension Error: Equatable {
     public static func == (lhs: Error, rhs: Error) -> Bool {
         switch (lhs, rhs) {
         case (.wrappedError, .wrappedError): return false
-        case (let .failedToParseDate(lhsSource), let .failedToParseDate(rhsSource)): return lhsSource == rhsSource
+        case let (.failedToParseDate(lhsSource), .failedToParseDate(rhsSource)): return lhsSource == rhsSource
         case (let .validationFailed(_, lhsProperty, _), let .validationFailed(_, rhsProperty, _)): return lhsProperty == rhsProperty
         case (let .failedDecodingProperty(lhsProperty, _, lhsType, lhsUnderlyingError), let .failedDecodingProperty(rhsProperty, _, rhsType, rhsUnderlyingError)):
             return "\(lhsType)" == "\(rhsType)" && lhsProperty == rhsProperty && lhsUnderlyingError == rhsUnderlyingError
-        case (let .failedDecodingType(lhsType, _), let .failedDecodingType(rhsType, _)): return "\(lhsType)" == "\(rhsType)"
+        case let (.failedDecodingType(lhsType, _), .failedDecodingType(rhsType, _)): return "\(lhsType)" == "\(rhsType)"
         default: return false
         }
     }
