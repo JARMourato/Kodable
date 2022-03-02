@@ -110,7 +110,7 @@ private extension Decodable {
             decode(UInt16.self),
             decode(UInt64.self),
             decode(Double.self),
-            decode(Float.self)
+            decode(Float.self),
         ]
 
         return types.lazy.compactMap { $0(decoder) }.first

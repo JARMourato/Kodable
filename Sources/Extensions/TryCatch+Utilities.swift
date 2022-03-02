@@ -1,6 +1,5 @@
 import Foundation
 
-
 struct FailableExpressionWithFallbackError: Swift.Error {
     let main: Swift.Error
     let fallback: Swift.Error
