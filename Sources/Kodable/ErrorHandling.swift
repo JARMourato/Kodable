@@ -85,3 +85,19 @@ extension Error: CustomStringConvertible {
         }
     }
 }
+
+// MARK: - Conformance to Equatable for testing purposes
+
+extension Error: Equatable {
+    public static func == (lhs: Error, rhs: Error) -> Bool {
+        switch (lhs, rhs) {
+        case (.wrappedError, .wrappedError): return false
+        case (let .failedToParseDate(lhsSource), let .failedToParseDate(rhsSource)): return lhsSource == rhsSource
+        case (let .validationFailed(_, lhsProperty, _), let .validationFailed(_, rhsProperty, _)): return lhsProperty == rhsProperty
+        case (let .failedDecodingProperty(lhsProperty, _, lhsType, lhsUnderlyingError), let .failedDecodingProperty(rhsProperty, _, rhsType, rhsUnderlyingError)):
+            return "\(lhsType)" == "\(rhsType)" && lhsProperty == rhsProperty && lhsUnderlyingError == rhsUnderlyingError
+        case (let .failedDecodingType(lhsType, _), let .failedDecodingType(rhsType, _)): return "\(lhsType)" == "\(rhsType)"
+        default: return false
+        }
+    }
+}
