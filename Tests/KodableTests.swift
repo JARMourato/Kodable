@@ -799,6 +799,7 @@ final class KodableTests: XCTestCase {
     }
 
     // MARK: - Test Data
+
     struct DummyError: Swift.Error {}
 
     static let testDate = Date()
