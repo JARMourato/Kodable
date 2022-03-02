@@ -45,7 +45,7 @@ public extension Dekodable {
                 }
             }
         } catch {
-            throw Error.failedDecodingType(type: type(of: self), underlyingError: .wrappedError(error))
+            throw KodableError.failedDecodingType(type: type(of: self), underlyingError: .wrappedError(error))
         }
     }
 

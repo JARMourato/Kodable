@@ -113,7 +113,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let valueIsValid = validate(finalValue) // 3: Go through the validators and check that none fails
 
         guard valueIsValid else {
-            throw Error.validationFailed(type: TargetType.self, property: propertyName, parsedValue: finalValue)
+            throw KodableError.validationFailed(type: TargetType.self, property: propertyName, parsedValue: finalValue)
         }
 
         wrappedValue = finalValue
@@ -143,7 +143,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
             do {
                 valueDecoded = try relevantContainer.decodeIfPresent(OriginalType.self, forKey: AnyCodingKey(relevantKey))
             } catch {
-                throw Error.failedDecodingProperty(property: propertyName, key: relevantKey, type: TargetType.self, underlyingError: .wrappedError(error))
+                throw KodableError.failedDecodingProperty(property: propertyName, key: relevantKey, type: TargetType.self, underlyingError: .wrappedError(error))
             }
         }
 
@@ -151,7 +151,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let flattened = valueDecoded.flattened()
 
         guard let value = flattened else {
-            throw Error.failedDecodingProperty(property: propertyName, key: stringKeyPath, type: TargetType.self, underlyingError: .wrappedError(DataNotFound()))
+            throw KodableError.failedDecodingProperty(property: propertyName, key: stringKeyPath, type: TargetType.self, underlyingError: .wrappedError(DataNotFound()))
         }
 
         return value as! OriginalType

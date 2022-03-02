@@ -1,8 +1,6 @@
 import Foundation
 
-// MARK: - Error Handling
-
-public enum Error: Swift.Error {
+public enum KodableError: Swift.Error {
     /// Wrapper for errors thrown by the decoder
     case wrappedError(Swift.Error)
     /// Thrown whenever the string cannot be parsed into a date
@@ -10,22 +8,22 @@ public enum Error: Swift.Error {
     /// Thrown whenever there is at least one validation modifier that fails the validation of the value parsed
     case validationFailed(type: Any, property: String, parsedValue: Any)
     /// Thrown whenever a property cannot be decoded
-    indirect case failedDecodingProperty(property: String, key: String, type: Any, underlyingError: Error)
+    indirect case failedDecodingProperty(property: String, key: String, type: Any, underlyingError: KodableError)
     /// Thrown whenever a Type cannot be decoded
-    indirect case failedDecodingType(type: Any, underlyingError: Error)
+    indirect case failedDecodingType(type: Any, underlyingError: KodableError)
 }
 
 // MARK: Helper extensions
 
-extension Error: CustomStringConvertible {
+extension KodableError: CustomStringConvertible {
     public var description: String {
         iterateOverErrors(nextError: self)
     }
 
-    internal var nextIteration: (Node, Error)? {
+    internal var nextIteration: (Node, KodableError)? {
         switch self {
         case let .wrappedError(error):
-            guard let dekodingError = error as? Error else { return nil }
+            guard let dekodingError = error as? KodableError else { return nil }
             return dekodingError.nextIteration
         case let .failedDecodingType(_, underlyingError):
             return underlyingError.nextIteration
@@ -36,13 +34,13 @@ extension Error: CustomStringConvertible {
         }
     }
 
-    internal func iterateOverErrors(initial nodes: [Node] = [], nextError: Error) -> String {
+    internal func iterateOverErrors(initial nodes: [Node] = [], nextError: KodableError) -> String {
         let initialString = nodes.isEmpty ? "\(nextError.errorDescription)" : "" // Nodes being empty means it is the root error
         guard let next = nextError.nextIteration else { return initialString + buildErrorMessage(nodes: nodes, error: nextError) }
         return initialString + iterateOverErrors(initial: nodes + [next.0], nextError: next.1)
     }
 
-    internal func buildErrorMessage(nodes: [Node], error: Error) -> String {
+    internal func buildErrorMessage(nodes: [Node], error: KodableError) -> String {
         let spacing = "  "
         var string = ""
         for i in 0 ... nodes.count {
@@ -88,8 +86,8 @@ extension Error: CustomStringConvertible {
 
 // MARK: - Conformance to Equatable for testing purposes
 
-extension Error: Equatable {
-    public static func == (lhs: Error, rhs: Error) -> Bool {
+extension KodableError: Equatable {
+    public static func == (lhs: KodableError, rhs: KodableError) -> Bool {
         switch (lhs, rhs) {
         case (.wrappedError, .wrappedError): return false
         case let (.failedToParseDate(lhsSource), .failedToParseDate(rhsSource)): return lhsSource == rhsSource

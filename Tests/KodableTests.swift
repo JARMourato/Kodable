@@ -106,7 +106,7 @@ final class KodableTests: XCTestCase {
         }
 
         assert(try FailingUser.decodeJSON(from: KodableTests.json),
-               throws: Error.failedDecodingType(type: FailingUser.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: FailingUser.self, underlyingError: .wrappedError(DummyError())))
     }
 
     func testNestedKeys() {
@@ -184,7 +184,7 @@ final class KodableTests: XCTestCase {
 
         let data = KodableTests.json
         assert(try Failed.decodeJSON(from: data),
-               throws: Error.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
     }
 
     func testEnforceType() {
@@ -206,7 +206,7 @@ final class KodableTests: XCTestCase {
         let data = KodableTests.json
 
         assert(try Failed.decodeJSON(from: data),
-               throws: Error.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
     }
 
     func testMissingProperty() {
@@ -217,7 +217,7 @@ final class KodableTests: XCTestCase {
         let data = KodableTests.json
 
         assert(try Failed.decodeJSON(from: data),
-               throws: Error.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
     }
 
     func testInvalidDataForProperty() {
@@ -226,7 +226,7 @@ final class KodableTests: XCTestCase {
 
             public func transformFromJSON(value: String) throws -> Date {
                 let dateValue = strategy.date(from: value)
-                guard let date = dateValue else { throw Error.failedToParseDate(source: value) }
+                guard let date = dateValue else { throw KodableError.failedToParseDate(source: value) }
                 return date
             }
 
@@ -244,7 +244,7 @@ final class KodableTests: XCTestCase {
         let data = KodableTests.json
 
         assert(try Failed.decodeJSON(from: data),
-               throws: Error.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(DummyError())))
     }
 
     func testInheritance() {
@@ -379,9 +379,9 @@ final class KodableTests: XCTestCase {
         }
 
         assert(try MissingString.decodeJSON(from: KodableTests.json),
-               throws: Error.failedDecodingType(type: MissingString.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: MissingString.self, underlyingError: .wrappedError(DummyError())))
         assert(try FailingString.decodeJSON(from: KodableTests.json),
-               throws: Error.failedDecodingType(type: FailingString.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: FailingString.self, underlyingError: .wrappedError(DummyError())))
     }
 
     func testOptionalLosslessDecodableConformance() {
@@ -495,12 +495,12 @@ final class KodableTests: XCTestCase {
         }
 
         assert(try EnforcedTypeArray.decodeJSON(from: KodableTests.json),
-               throws: Error.failedDecodingType(type: EnforcedTypeArray.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: EnforcedTypeArray.self, underlyingError: .wrappedError(DummyError())))
 
         assert(try InvalidLosslessArray.decodeJSON(from: KodableTests.json),
-               throws: Error.failedDecodingType(type: InvalidLosslessArray.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: InvalidLosslessArray.self, underlyingError: .wrappedError(DummyError())))
         assert(try MissingArray.decodeJSON(from: KodableTests.json),
-               throws: Error.failedDecodingType(type: MissingArray.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: MissingArray.self, underlyingError: .wrappedError(DummyError())))
     }
 
     // MARK: - Mix And Match With Codable Tests
@@ -618,7 +618,7 @@ final class KodableTests: XCTestCase {
         let transformer = DateTransformer<Date>()
         let optionalTransformer = DateTransformer<Date?>()
 
-        assert(try transformer.transformFromJSON(value: nil), throws: Error.failedToParseDate(source: "nil"))
+        assert(try transformer.transformFromJSON(value: nil), throws: KodableError.failedToParseDate(source: "nil"))
         XCTAssertEqual(try optionalTransformer.transformFromJSON(value: nil), nil)
     }
 
@@ -719,7 +719,7 @@ final class KodableTests: XCTestCase {
             @CodableDate("social") var isoDate: Date
         }
         assert(try Dates.decodeJSON(from: KodableTests.json),
-               throws: Error.failedDecodingType(type: Dates.self, underlyingError: .wrappedError(DummyError())))
+               throws: KodableError.failedDecodingType(type: Dates.self, underlyingError: .wrappedError(DummyError())))
     }
 
     // MARK: - Equatable
