@@ -65,7 +65,7 @@ extension KodableError: CustomStringConvertible {
         case let .failedDecodingProperty(property, key, type, _):
             return "Could not decode type \(type). Failed to decode property \(property) for key \(key)"
         case let .failedDecodingType(type, _):
-            return "Could not decode an intance of \(type):\n"
+            return "Could not decode an instance of \(type):\n"
         }
     }
 
