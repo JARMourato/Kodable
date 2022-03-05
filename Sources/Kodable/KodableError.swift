@@ -22,15 +22,18 @@ extension KodableError: CustomStringConvertible {
 
     internal var nextIteration: (Node, KodableError)? {
         switch self {
-        case let .wrappedError(error):
-            guard let dekodingError = error as? KodableError else { return nil }
-            return dekodingError.nextIteration
-        case let .failedDecodingType(_, underlyingError):
-            return underlyingError.nextIteration
         case let .failedDecodingProperty(property, key, type, underlyingError):
             return (Node(type: type, propertyName: property, key: key), underlyingError)
+        case let .failedDecodingType(_, underlyingError):
+            return underlyingError.nextIteration
         case .failedToParseDate, .validationFailed:
             return nil
+        case let .wrappedError(error):
+            guard let dekodingError = error as? KodableError else { return nil }
+            guard case let .failedDecodingType(type, underlyingError) = dekodingError else {
+                return dekodingError.nextIteration
+            }
+            return (Node(type: type, propertyName: "", key: ""), underlyingError)
         }
     }
 
@@ -57,7 +60,7 @@ extension KodableError: CustomStringConvertible {
     internal var errorDescription: String {
         switch self {
         case let .wrappedError(error):
-            return "Cause: \(error)"
+            return "Cause: \(BetterDecodingError(with: error).description)"
         case let .failedToParseDate(source):
             return "Could not parse Date from this value: \(source)"
         case let .validationFailed(type, property, parsedValue):
@@ -75,7 +78,9 @@ extension KodableError: CustomStringConvertible {
         let key: String
 
         var description: String {
-            if propertyName == key {
+            if propertyName.isEmpty {
+                return "* failing type \(type)"
+            } else if propertyName == key {
                 return "* failing property: \"\(propertyName)\" of type \(type)"
             } else {
                 return "* failing property: \"\(propertyName)\"(key: \"\(key)\") of type \(type)"
