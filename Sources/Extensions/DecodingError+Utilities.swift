@@ -4,7 +4,6 @@ import Foundation
 
 // Borrowed from here https://gist.github.com/nunogoncalves/4852077f4e576872f72b70d9e79942f3 🙌🏻
 enum BetterDecodingError: CustomStringConvertible {
-
     case dataCorrupted(_ message: String)
     case keyNotFound(_ message: String)
     case typeMismatch(_ message: String)
@@ -31,6 +30,7 @@ enum BetterDecodingError: CustomStringConvertible {
             self = .any(error)
         }
     }
+
     var description: String {
         switch self {
         case let .dataCorrupted(message), let .keyNotFound(message), let .typeMismatch(message), let .valueNotFound(message):
@@ -42,7 +42,7 @@ enum BetterDecodingError: CustomStringConvertible {
 }
 
 extension DecodingError.Context {
-    func prettyPath(separatedBy separator: String = ".") -> String {
-        codingPath.map { $0.stringValue }.joined(separator: ".")
+    func prettyPath(separatedBy _: String = ".") -> String {
+        codingPath.map(\.stringValue).joined(separator: ".")
     }
 }
