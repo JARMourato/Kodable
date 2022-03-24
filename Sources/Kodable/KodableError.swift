@@ -78,13 +78,9 @@ extension KodableError: CustomStringConvertible {
         let key: String
 
         var description: String {
-            if propertyName.isEmpty {
-                return "* failing type \(type)"
-            } else if propertyName == key {
-                return "* failing property: \"\(propertyName)\" of type \(type)"
-            } else {
-                return "* failing property: \"\(propertyName)\"(key: \"\(key)\") of type \(type)"
-            }
+            guard !propertyName.isEmpty else { return "* failing type \(type)" }
+            guard propertyName != key else { return "* failing property: \"\(propertyName)\" of type \(type)" }
+            return "* failing property: \"\(propertyName)\"(key: \"\(key)\") of type \(type)"
         }
     }
 }

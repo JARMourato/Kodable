@@ -35,10 +35,6 @@ extension DecodeContainer {
     mutating func nestedContainer(forKey stringKey: String) throws -> DecodeContainer {
         try nestedContainer(keyedBy: AnyCodingKey.self, forKey: AnyCodingKey(stringKey))
     }
-
-    func containsValue(for key: String) -> Bool {
-        contains(AnyCodingKey(key))
-    }
 }
 
 extension EncodeContainer {

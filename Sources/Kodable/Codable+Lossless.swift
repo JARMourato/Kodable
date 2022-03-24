@@ -71,12 +71,13 @@ extension Decodable where Self: LosslessStringConvertible {
         func decode<T: Decodable>(_ type: T.Type) throws -> T {
             try container.decode(type, with: key)
         }
-
+        let value: Self
         do {
-            return try failableExpression(decode(Self.self), withFallback: decode(LosslessValue<Self>.self).value)
+            value = try failableExpression(decode(Self.self), withFallback: decode(LosslessValue<Self>.self).value)
         } catch {
             throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .wrappedError(error))
         }
+        return value
     }
 
     static func losslessDecodeIfPresent(from container: DecodeContainer, with key: String) throws -> Self? {
@@ -134,11 +135,13 @@ protocol DecodableSequence {
 
 extension DecodableSequence {
     static func decodeSequence(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self {
+        let value: Self
         do {
-            return try sequenceDecoding(from: container, with: key, decoding: decoding)
+            value = try sequenceDecoding(from: container, with: key, decoding: decoding)
         } catch {
             throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .wrappedError(error))
         }
+        return value
     }
 
     static func decodeSequenceIfPresent(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self? {
