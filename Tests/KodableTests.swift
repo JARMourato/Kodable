@@ -836,6 +836,16 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(BetterDecodingError(with: valueNotFound).description, "Value not found. -> \(context.prettyPath()) <- \(context.debugDescription)")
     }
 
+    func testKodableErrorIsEquatable() {
+        XCTAssertNotEqual(KodableError.wrappedError(DummyError()), KodableError.wrappedError(DummyError()))
+        XCTAssertEqual(KodableError.failedToParseDate(source: "29-03-2020"), KodableError.failedToParseDate(source: "29-03-2020"))
+        XCTAssertEqual(KodableError.validationFailed(type: String.self, property: "same", parsedValue: 1), KodableError.validationFailed(type: String.self, property: "same", parsedValue: 2))
+        let sameError = KodableError.failedToParseDate(source: "corrupted_date")
+        XCTAssertEqual(KodableError.failedDecodingProperty(property: "date", key: "createdAt", type: Date.self, underlyingError: sameError), KodableError.failedDecodingProperty(property: "date", key: "createdAt", type: Date.self, underlyingError: sameError))
+        XCTAssertEqual(KodableError.failedDecodingType(type: Int.self, underlyingError: sameError), KodableError.failedDecodingType(type: Int.self, underlyingError: sameError))
+        XCTAssertNotEqual(KodableError.failedDecodingType(type: Int.self, underlyingError: sameError), KodableError.wrappedError(DummyError()))
+    }
+
     // MARK: - Utilities
 
     /// Utility to compare `Any?` elements.
