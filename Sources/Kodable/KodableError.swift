@@ -1,8 +1,8 @@
 import Foundation
 
-public enum KodableError: Swift.Error {
+public enum KodableError: Error {
     /// Wrapper for errors thrown by the decoder
-    case wrappedError(Swift.Error)
+    case wrappedError(Error)
     /// Thrown whenever the string cannot be parsed into a date
     case failedToParseDate(source: String)
     /// Thrown whenever there is at least one validation modifier that fails the validation of the value parsed

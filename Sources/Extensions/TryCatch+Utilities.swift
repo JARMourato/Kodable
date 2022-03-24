@@ -1,8 +1,8 @@
 import Foundation
 
-struct FailableExpressionWithFallbackError: Swift.Error {
-    let main: Swift.Error
-    let fallback: Swift.Error
+struct FailableExpressionWithFallbackError: Error {
+    let main: Error
+    let fallback: Error
 }
 
 // MARK: Helper extensions
@@ -23,10 +23,12 @@ internal func failableExpression<T>(_ expression: @autoclosure () throws -> T, w
     do {
         return try expression()
     } catch let firstError {
+        let result: T
         do {
-            return try fallback()
+            result = try fallback()
         } catch let secondError {
             throw FailableExpressionWithFallbackError(main: firstError, fallback: secondError)
         }
+        return result
     }
 }

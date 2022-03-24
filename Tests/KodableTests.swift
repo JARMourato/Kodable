@@ -790,6 +790,24 @@ final class KodableTests: XCTestCase {
         XCTAssertTrue(optionalEnum.isNil)
     }
 
+    // MARK: - Error Tests
+
+    func testFailableExpressionAndFallBackError() throws {
+        struct FirstError: Error {}
+        struct SecondError: Error {}
+
+        typealias Expression = () throws -> Int
+        let successExpresion: Expression = { 1 }
+        let firstError: Expression = { throw FirstError() }
+        let secondError: Expression = { throw SecondError() }
+
+        let success = try failableExpression(successExpresion(), withFallback: successExpresion())
+        XCTAssertEqual(success, 1)
+        let firstErrorButResult = try failableExpression(firstError(), withFallback: successExpresion())
+        XCTAssertEqual(firstErrorButResult, 1)
+        assert(try failableExpression(firstError(), withFallback: secondError()), throws: FailableExpressionWithFallbackError(main: FirstError(), fallback: SecondError()))
+    }
+
     // MARK: - Utilities
 
     /// Utility to compare `Any?` elements.
@@ -800,7 +818,7 @@ final class KodableTests: XCTestCase {
 
     // MARK: - Test Data
 
-    struct DummyError: Swift.Error {}
+    struct DummyError: Error {}
 
     static let testDate = Date()
 

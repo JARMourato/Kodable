@@ -43,7 +43,7 @@ struct LosslessDecodableArray<Element: Decodable>: Decodable {
     }
 }
 
-private struct Corrupted: Swift.Error {}
+private struct Corrupted: Error {}
 
 // MARK: Helper type to decode lossy arrays
 
