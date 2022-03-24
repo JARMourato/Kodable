@@ -792,6 +792,10 @@ final class KodableTests: XCTestCase {
 
     // MARK: - Error Tests
 
+    func testInternalErrorDataNotFoundReturnsExpectedDescription() {
+        XCTAssertEqual(DataNotFound().description, "Missing key (or null value) for property marked as required.")
+    }
+
     func testFailableExpressionAndFallBackError() throws {
         struct FirstError: Error {}
         struct SecondError: Error {}
@@ -806,6 +810,30 @@ final class KodableTests: XCTestCase {
         let firstErrorButResult = try failableExpression(firstError(), withFallback: successExpresion())
         XCTAssertEqual(firstErrorButResult, 1)
         assert(try failableExpression(firstError(), withFallback: secondError()), throws: FailableExpressionWithFallbackError(main: FirstError(), fallback: SecondError()))
+    }
+
+    func testKodableErrorNode() throws {
+        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "", key: "").description, "* failing type \(String.self)")
+        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "property", key: "property").description, "* failing property: \"\("property")\" of type \(String.self)")
+        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "dateCreated", key: "created_at").description, "* failing property: \"\("dateCreated")\"(key: \"\("created_at")\") of type \(String.self)")
+    }
+
+    func testBetterDecodingError() {
+        let context: DecodingError.Context = .init(codingPath: [], debugDescription: "", underlyingError: nil)
+        // Any Error
+        XCTAssertEqual(BetterDecodingError(with: DummyError()).description, DummyError().localizedDescription)
+        // Data Corrupted
+        let dataCorrupted = DecodingError.dataCorrupted(context)
+        XCTAssertEqual(BetterDecodingError(with: dataCorrupted).description, "Data corrupted. \(context.debugDescription) ")
+        // Key Not Found
+        let keyNotFound = DecodingError.keyNotFound(AnyCodingKey(stringValue: "key")!, context)
+        XCTAssertEqual(BetterDecodingError(with: keyNotFound).description, "Key not found. Expected -> \("key") <- at: \(context.prettyPath())")
+        // Type Mismatch
+        let typeMismatch = DecodingError.typeMismatch(String.self, context)
+        XCTAssertEqual(BetterDecodingError(with: typeMismatch).description, "Type mismatch. \(context.debugDescription), at: \(context.prettyPath())")
+        // Value Not Found
+        let valueNotFound = DecodingError.valueNotFound(String.self, context)
+        XCTAssertEqual(BetterDecodingError(with: valueNotFound).description, "Value not found. -> \(context.prettyPath()) <- \(context.debugDescription)")
     }
 
     // MARK: - Utilities
