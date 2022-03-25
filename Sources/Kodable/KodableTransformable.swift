@@ -151,7 +151,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let flattened = valueDecoded.flattened()
 
         guard let value = flattened else {
-            throw KodableError.failedDecodingProperty(property: propertyName, key: stringKeyPath, type: TargetType.self, underlyingError: .wrappedError(DataNotFound()))
+            throw KodableError.failedDecodingProperty(property: propertyName, key: stringKeyPath, type: TargetType.self, underlyingError: .dataNotFound)
         }
 
         return value as! OriginalType
@@ -182,10 +182,4 @@ public enum PropertyDecoding {
     /// This option is only relevant to `Collection` types. It allows to decode elements, ignoring individual elements for which decoding failed.
     /// if selected for non compatible types, `enforceType` will be used
     case lossy
-}
-
-// MARK: - Internal Error
-
-struct DataNotFound: Error, CustomStringConvertible {
-    var description: String { "Missing key (or null value) for property marked as required." }
 }

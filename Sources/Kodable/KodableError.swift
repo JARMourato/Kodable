@@ -3,6 +3,8 @@ import Foundation
 public enum KodableError: Error {
     /// Wrapper for errors thrown by the decoder
     case wrappedError(Error)
+    /// Thrown whenever there is no data for a required property
+    case dataNotFound
     /// Thrown whenever the string cannot be parsed into a date
     case failedToParseDate(source: String)
     /// Thrown whenever there is at least one validation modifier that fails the validation of the value parsed
@@ -26,7 +28,7 @@ extension KodableError: CustomStringConvertible {
             return (Node(type: type, propertyName: property, key: key), underlyingError)
         case let .failedDecodingType(_, underlyingError):
             return underlyingError.nextIteration
-        case .failedToParseDate, .validationFailed:
+        case .failedToParseDate, .validationFailed, .dataNotFound:
             return nil
         case let .wrappedError(error):
             guard let dekodingError = error as? KodableError else { return nil }
@@ -61,6 +63,8 @@ extension KodableError: CustomStringConvertible {
         switch self {
         case let .wrappedError(error):
             return "Cause: \(BetterDecodingError(with: error).description)"
+        case .dataNotFound:
+            return "Missing key (or null value) for property marked as required."
         case let .failedToParseDate(source):
             return "Could not parse Date from this value: \(source)"
         case let .validationFailed(type, property, parsedValue):
@@ -90,13 +94,23 @@ extension KodableError: CustomStringConvertible {
 extension KodableError: Equatable {
     public static func == (lhs: KodableError, rhs: KodableError) -> Bool {
         switch (lhs, rhs) {
-        case (.wrappedError, .wrappedError): return false
-        case let (.failedToParseDate(lhsSource), .failedToParseDate(rhsSource)): return lhsSource == rhsSource
-        case (let .validationFailed(_, lhsProperty, _), let .validationFailed(_, rhsProperty, _)): return lhsProperty == rhsProperty
+        case let (.wrappedError(lhsError), .wrappedError(rhsError)):
+            guard let lhsKodableError = lhsError as? KodableError, let rhsKodableError = rhsError as? KodableError else {
+                return lhsError.localizedDescription == rhsError.localizedDescription // A bit dumb but 🤷🏻‍♂️
+            }
+            return lhsKodableError == rhsKodableError
+        case (.dataNotFound, .dataNotFound):
+            return true
+        case let (.failedToParseDate(lhsSource), .failedToParseDate(rhsSource)):
+            return lhsSource == rhsSource
+        case (let .validationFailed(_, lhsProperty, _), let .validationFailed(_, rhsProperty, _)):
+            return lhsProperty == rhsProperty
         case (let .failedDecodingProperty(lhsProperty, _, lhsType, lhsUnderlyingError), let .failedDecodingProperty(rhsProperty, _, rhsType, rhsUnderlyingError)):
             return "\(lhsType)" == "\(rhsType)" && lhsProperty == rhsProperty && lhsUnderlyingError == rhsUnderlyingError
-        case let (.failedDecodingType(lhsType, _), .failedDecodingType(rhsType, _)): return "\(lhsType)" == "\(rhsType)"
-        default: return false
+        case let (.failedDecodingType(lhsType, lhsError), .failedDecodingType(rhsType, rhsError)):
+            return "\(lhsType)" == "\(rhsType)" && rhsError == lhsError
+        default:
+            return false
         }
     }
 }
