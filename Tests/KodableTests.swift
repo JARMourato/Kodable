@@ -106,7 +106,7 @@ final class KodableTests: XCTestCase {
         }
 
         let failedProperty = KodableError.failedDecodingProperty(property: "phone", key: "phone", type: String.self, underlyingError: .dataNotFound)
-        let error = KodableError.failedDecodingType(type: FailingUser.self, underlyingError: .wrappedError(failedProperty))
+        let error = KodableError.failedDecodingType(type: FailingUser.self, underlyingError: failedProperty)
         assert(try FailingUser.decodeJSON(from: KodableTests.json), throws: error)
     }
 
@@ -185,7 +185,7 @@ final class KodableTests: XCTestCase {
 
         let data = KodableTests.json
         let validationFailed = KodableError.validationFailed(type: Int.self, property: "width", parsedValue: 400)
-        let errorThrown = KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(validationFailed))
+        let errorThrown = KodableError.failedDecodingType(type: Failed.self, underlyingError: validationFailed)
 
         assert(try Failed.decodeJSON(from: data), throws: errorThrown)
     }
@@ -210,7 +210,7 @@ final class KodableTests: XCTestCase {
         let context = DecodingError.Context(codingPath: [], debugDescription: "", underlyingError: nil)
         let typeMismatch = DecodingError.typeMismatch(Bool.self, context)
         let failedProperty = KodableError.failedDecodingProperty(property: "notBool", key: "string_bool", type: Bool.self, underlyingError: .wrappedError(typeMismatch))
-        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(failedProperty))
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: failedProperty)
 
         assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
@@ -222,7 +222,7 @@ final class KodableTests: XCTestCase {
 
         let data = KodableTests.json
         let failedProperty = KodableError.failedDecodingProperty(property: "size", key: "size", type: Int.self, underlyingError: .dataNotFound)
-        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(failedProperty))
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: failedProperty)
 
         assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
@@ -252,7 +252,7 @@ final class KodableTests: XCTestCase {
         let context = DecodingError.Context(codingPath: [], debugDescription: "", underlyingError: nil)
         let typeMismatch = DecodingError.typeMismatch(Int.self, context)
         let failedProperty = KodableError.failedDecodingProperty(property: "animated", key: "animated", type: Int.self, underlyingError: .wrappedError(typeMismatch))
-        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: .wrappedError(failedProperty))
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: failedProperty)
 
         assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
@@ -393,7 +393,7 @@ final class KodableTests: XCTestCase {
         let typeMismatch = DecodingError.typeMismatch(String.self, failedContext)
         let failedStringFallback = FailableExpressionWithFallbackError(main: typeMismatch, fallback: Corrupted())
         let failedStringProperty = KodableError.failedDecodingProperty(property: "languages", key: "languages", type: String.self, underlyingError: .wrappedError(failedStringFallback))
-        let failedStringThrownError = KodableError.failedDecodingType(type: FailingString.self, underlyingError: .wrappedError(failedStringProperty))
+        let failedStringThrownError = KodableError.failedDecodingType(type: FailingString.self, underlyingError: failedStringProperty)
 
         assert(try FailingString.decodeJSON(from: KodableTests.json), throws: failedStringThrownError)
 
@@ -402,7 +402,7 @@ final class KodableTests: XCTestCase {
         let keyNotFound = DecodingError.keyNotFound(AnyCodingKey(stringValue: "missing_languages")!, missingContext)
         let missingStringFallback = FailableExpressionWithFallbackError(main: keyNotFound, fallback: keyNotFound)
         let missingStringProperty = KodableError.failedDecodingProperty(property: "missing_languages", key: "missing_languages", type: String.self, underlyingError: .wrappedError(missingStringFallback))
-        let missingStringThrownError = KodableError.failedDecodingType(type: MissingString.self, underlyingError: .wrappedError(missingStringProperty))
+        let missingStringThrownError = KodableError.failedDecodingType(type: MissingString.self, underlyingError: missingStringProperty)
 
         assert(try MissingString.decodeJSON(from: KodableTests.json), throws: missingStringThrownError)
     }
@@ -520,17 +520,17 @@ final class KodableTests: XCTestCase {
         let enforcedContext = DecodingError.Context(codingPath: [], debugDescription: "Expected to decode String but found a number instead.", underlyingError: nil)
         let typeMismatch = DecodingError.typeMismatch(Int.self, enforcedContext)
         let enforcedFailedProperty = KodableError.failedDecodingProperty(property: "failable_array", key: "failable_array", type: [String].self, underlyingError: .wrappedError(typeMismatch))
-        let enforcedTypeThrownError = KodableError.failedDecodingType(type: EnforcedTypeArray.self, underlyingError: .wrappedError(enforcedFailedProperty))
+        let enforcedTypeThrownError = KodableError.failedDecodingType(type: EnforcedTypeArray.self, underlyingError: enforcedFailedProperty)
         assert(try EnforcedTypeArray.decodeJSON(from: KodableTests.json), throws: enforcedTypeThrownError)
 
         let invalidFailedProperty = KodableError.failedDecodingProperty(property: "failable_lossy_array", key: "failable_lossy_array", type: [LossyStruct].self, underlyingError: .wrappedError(Corrupted()))
-        let invalidLosslessArrayThrownError = KodableError.failedDecodingType(type: InvalidLosslessArray.self, underlyingError: .wrappedError(invalidFailedProperty))
+        let invalidLosslessArrayThrownError = KodableError.failedDecodingType(type: InvalidLosslessArray.self, underlyingError: invalidFailedProperty)
         assert(try InvalidLosslessArray.decodeJSON(from: KodableTests.json), throws: invalidLosslessArrayThrownError)
 
         let missingContext = DecodingError.Context(codingPath: [], debugDescription: "", underlyingError: nil)
         let keyNotFound = DecodingError.keyNotFound(AnyCodingKey(stringValue: "missing_array")!, missingContext)
         let missingFailedProperty = KodableError.failedDecodingProperty(property: "missing_array", key: "missing_array", type: [String].self, underlyingError: .wrappedError(keyNotFound))
-        let missingArrayThrownError = KodableError.failedDecodingType(type: MissingArray.self, underlyingError: .wrappedError(missingFailedProperty))
+        let missingArrayThrownError = KodableError.failedDecodingType(type: MissingArray.self, underlyingError: missingFailedProperty)
         assert(try MissingArray.decodeJSON(from: KodableTests.json), throws: missingArrayThrownError)
     }
 
@@ -751,7 +751,7 @@ final class KodableTests: XCTestCase {
         }
 
         let cannotDecodeDate = KodableError.failedToParseDate(source: "123456789987654321")
-        let thrownError = KodableError.failedDecodingType(type: Dates.self, underlyingError: .wrappedError(cannotDecodeDate))
+        let thrownError = KodableError.failedDecodingType(type: Dates.self, underlyingError: cannotDecodeDate)
         assert(try Dates.decodeJSON(from: KodableTests.json), throws: thrownError)
     }
 

@@ -143,7 +143,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
             do {
                 valueDecoded = try relevantContainer.decodeIfPresent(OriginalType.self, forKey: AnyCodingKey(relevantKey))
             } catch {
-                throw KodableError.failedDecodingProperty(property: propertyName, key: relevantKey, type: TargetType.self, underlyingError: .wrappedError(error))
+                throw KodableError.failedDecodingProperty(property: propertyName, key: relevantKey, type: TargetType.self, underlyingError: .create(from: error))
             }
         }
 

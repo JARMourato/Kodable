@@ -89,6 +89,15 @@ extension KodableError: CustomStringConvertible {
     }
 }
 
+// MARK: - Helper init
+
+extension KodableError {
+    static func create(from error: Error) -> KodableError {
+        guard let kodableError = error as? KodableError else { return .wrappedError(error) }
+        return kodableError
+    }
+}
+
 // MARK: - Conformance to Equatable for testing purposes
 
 extension KodableError: Equatable {

@@ -75,7 +75,7 @@ extension Decodable where Self: LosslessStringConvertible {
         do {
             value = try failableExpression(decode(Self.self), withFallback: decode(LosslessValue<Self>.self).value)
         } catch {
-            throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .wrappedError(error))
+            throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .create(from: error))
         }
         return value
     }
@@ -139,7 +139,7 @@ extension DecodableSequence {
         do {
             value = try sequenceDecoding(from: container, with: key, decoding: decoding)
         } catch {
-            throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .wrappedError(error))
+            throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .create(from: error))
         }
         return value
     }
