@@ -11,22 +11,17 @@ enum BetterDecodingError: CustomStringConvertible {
     case any(_ error: Error)
 
     init(with error: Error) {
-        guard let decodingError = error as? DecodingError else {
-            self = .any(error)
-            return
-        }
-
-        switch decodingError {
-        case let .dataCorrupted(context):
+        switch error {
+        case let DecodingError.dataCorrupted(context):
             let debugDescription = (context.underlyingError as NSError?)?.userInfo["NSDebugDescription"] ?? ""
             self = .dataCorrupted("Data corrupted. \(context.debugDescription) \(debugDescription)")
-        case let .keyNotFound(key, context):
+        case let DecodingError.keyNotFound(key, context):
             self = .keyNotFound("Key not found. Expected -> \(key.stringValue) <- at: \(context.prettyPath())")
-        case let .typeMismatch(_, context):
+        case let DecodingError.typeMismatch(_, context):
             self = .typeMismatch("Type mismatch. \(context.debugDescription), at: \(context.prettyPath())")
-        case let .valueNotFound(_, context):
+        case let DecodingError.valueNotFound(_, context):
             self = .valueNotFound("Value not found. -> \(context.prettyPath()) <- \(context.debugDescription)")
-        @unknown default:
+        default:
             self = .any(error)
         }
     }
