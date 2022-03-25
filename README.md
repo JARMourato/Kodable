@@ -16,6 +16,7 @@
 - Validation of the values decoded
 - Automatically tries to decode `String` and `Bool` from other types as a fallback 
 - Transformer protocol to implement your own additional functionality on top of the existing ones
+- Special error handling and better readability of Swift's `DecodingError`
 
 
 Table of contents
@@ -400,6 +401,10 @@ If you feel like something is missing or you want to add any new functionality, 
 ## License
 
 MIT
+
+## Special thanks to
+
+Better Decoding Error Messages - via [@nunogoncalves](https://gist.github.com/nunogoncalves/4852077f4e576872f72b70d9e79942f3)
 
 ## Contact
 
