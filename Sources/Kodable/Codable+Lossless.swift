@@ -67,7 +67,7 @@ struct LossyDecodableArray<Element: Decodable>: Decodable {
 }
 
 extension Decodable where Self: LosslessStringConvertible {
-    static func losslessDecode(from container: DecodeContainer, with key: String) throws -> Self {
+    static func losslessDecode(from container: DecodeContainer, for propertyName: String, with key: String) throws -> Self {
         func decode<T: Decodable>(_ type: T.Type) throws -> T {
             try container.decode(type, with: key)
         }
@@ -75,7 +75,7 @@ extension Decodable where Self: LosslessStringConvertible {
         do {
             value = try failableExpression(decode(Self.self), withFallback: decode(LosslessValue<Self>.self).value)
         } catch {
-            throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .create(from: error))
+            throw KodableError.failedDecodingProperty(property: propertyName, key: key, type: Self.self, underlyingError: .create(from: error))
         }
         return value
     }
@@ -128,18 +128,18 @@ private extension Decodable {
 // MARK: Sequence + Lossless & Lossy
 
 protocol DecodableSequence {
-    static func decodeSequence(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self
+    static func decodeSequence(from container: DecodeContainer, for propertyName: String, with key: String, decoding: PropertyDecoding) throws -> Self
     static func decodeSequenceIfPresent(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self?
     static func sequenceDecoding(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self
 }
 
 extension DecodableSequence {
-    static func decodeSequence(from container: DecodeContainer, with key: String, decoding: PropertyDecoding) throws -> Self {
+    static func decodeSequence(from container: DecodeContainer, for propertyName: String, with key: String, decoding: PropertyDecoding) throws -> Self {
         let value: Self
         do {
             value = try sequenceDecoding(from: container, with: key, decoding: decoding)
         } catch {
-            throw KodableError.failedDecodingProperty(property: key, key: key, type: Self.self, underlyingError: .create(from: error))
+            throw KodableError.failedDecodingProperty(property: propertyName, key: key, type: Self.self, underlyingError: .create(from: error))
         }
         return value
     }
