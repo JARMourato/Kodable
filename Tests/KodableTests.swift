@@ -105,7 +105,9 @@ final class KodableTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
 
-        assert(try FailingUser.decodeJSON(from: KodableTests.json), throws: KodableError.nonOptionalValueMissing(property: "phone"))
+        let failedProperty = KodableError.failedDecodingProperty(property: "phone", key: "phone", type: String.self, underlyingError: .dataNotFound)
+        let error = KodableError.failedDecodingType(type: FailingUser.self, underlyingError: failedProperty)
+        assert(try FailingUser.decodeJSON(from: KodableTests.json), throws: error)
     }
 
     func testNestedKeys() {
@@ -182,8 +184,10 @@ final class KodableTests: XCTestCase {
         }
 
         let data = KodableTests.json
+        let validationFailed = KodableError.validationFailed(type: Int.self, property: "width", parsedValue: 400)
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: validationFailed)
 
-        assert(try Failed.decodeJSON(from: data), throws: KodableError.validationFailed(property: "width", parsedValue: ""))
+        assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
 
     func testEnforceType() {
@@ -203,7 +207,12 @@ final class KodableTests: XCTestCase {
         }
 
         let data = KodableTests.json
-        assert(try Failed.decodeJSON(from: data), throws: KodableError.invalidValueForPropertyWithKey("string_bool"))
+        let context = DecodingError.Context(codingPath: [], debugDescription: "", underlyingError: nil)
+        let typeMismatch = DecodingError.typeMismatch(Bool.self, context)
+        let failedProperty = KodableError.failedDecodingProperty(property: "notBool", key: "string_bool", type: Bool.self, underlyingError: .wrappedError(typeMismatch))
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: failedProperty)
+
+        assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
 
     func testMissingProperty() {
@@ -212,8 +221,10 @@ final class KodableTests: XCTestCase {
         }
 
         let data = KodableTests.json
+        let failedProperty = KodableError.failedDecodingProperty(property: "size", key: "size", type: Int.self, underlyingError: .dataNotFound)
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: failedProperty)
 
-        assert(try Failed.decodeJSON(from: data), throws: KodableError.nonOptionalValueMissing(property: "size"))
+        assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
 
     func testInvalidDataForProperty() {
@@ -238,8 +249,12 @@ final class KodableTests: XCTestCase {
         }
 
         let data = KodableTests.json
+        let context = DecodingError.Context(codingPath: [], debugDescription: "", underlyingError: nil)
+        let typeMismatch = DecodingError.typeMismatch(Int.self, context)
+        let failedProperty = KodableError.failedDecodingProperty(property: "animated", key: "animated", type: Int.self, underlyingError: .wrappedError(typeMismatch))
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: failedProperty)
 
-        assert(try Failed.decodeJSON(from: data), throws: KodableError.invalidValueForPropertyWithKey("animated"))
+        assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
 
     func testInheritance() {
@@ -373,8 +388,23 @@ final class KodableTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
 
-        assert(try MissingString.decodeJSON(from: KodableTests.json), throws: KodableError.nonOptionalValueMissing(property: "missing_languages"))
-        assert(try FailingString.decodeJSON(from: KodableTests.json), throws: KodableError.invalidValueForPropertyWithKey("languages"))
+        // Failing String
+        let failedContext = DecodingError.Context(codingPath: [AnyCodingKey(stringValue: "languages")!], debugDescription: "Expected to decode String but found an array instead.", underlyingError: nil)
+        let typeMismatch = DecodingError.typeMismatch(String.self, failedContext)
+        let failedStringFallback = FailableExpressionWithFallbackError(main: typeMismatch, fallback: Corrupted())
+        let failedStringProperty = KodableError.failedDecodingProperty(property: "string", key: "languages", type: String.self, underlyingError: .wrappedError(failedStringFallback))
+        let failedStringThrownError = KodableError.failedDecodingType(type: FailingString.self, underlyingError: failedStringProperty)
+
+        assert(try FailingString.decodeJSON(from: KodableTests.json), throws: failedStringThrownError)
+
+        // Missing String
+        let missingContext = DecodingError.Context(codingPath: [], debugDescription: "No value associated with key AnyCodingKey(stringValue: \"missing_languages\", intValue: nil) (\"missing_languages\").", underlyingError: nil)
+        let keyNotFound = DecodingError.keyNotFound(AnyCodingKey(stringValue: "missing_languages")!, missingContext)
+        let missingStringFallback = FailableExpressionWithFallbackError(main: keyNotFound, fallback: keyNotFound)
+        let missingStringProperty = KodableError.failedDecodingProperty(property: "string", key: "missing_languages", type: String.self, underlyingError: .wrappedError(missingStringFallback))
+        let missingStringThrownError = KodableError.failedDecodingType(type: MissingString.self, underlyingError: missingStringProperty)
+
+        assert(try MissingString.decodeJSON(from: KodableTests.json), throws: missingStringThrownError)
     }
 
     func testOptionalLosslessDecodableConformance() {
@@ -487,9 +517,21 @@ final class KodableTests: XCTestCase {
             XCTFail(error.localizedDescription)
         }
 
-        assert(try EnforcedTypeArray.decodeJSON(from: KodableTests.json), throws: KodableError.invalidValueForPropertyWithKey("failable_array"))
-        assert(try InvalidLosslessArray.decodeJSON(from: KodableTests.json), throws: KodableError.invalidValueForPropertyWithKey("failable_lossy_array"))
-        assert(try MissingArray.decodeJSON(from: KodableTests.json), throws: KodableError.nonOptionalValueMissing(property: "missing_array"))
+        let enforcedContext = DecodingError.Context(codingPath: [], debugDescription: "Expected to decode String but found a number instead.", underlyingError: nil)
+        let typeMismatch = DecodingError.typeMismatch(Int.self, enforcedContext)
+        let enforcedFailedProperty = KodableError.failedDecodingProperty(property: "array", key: "failable_array", type: [String].self, underlyingError: .wrappedError(typeMismatch))
+        let enforcedTypeThrownError = KodableError.failedDecodingType(type: EnforcedTypeArray.self, underlyingError: enforcedFailedProperty)
+        assert(try EnforcedTypeArray.decodeJSON(from: KodableTests.json), throws: enforcedTypeThrownError)
+
+        let invalidFailedProperty = KodableError.failedDecodingProperty(property: "array", key: "failable_lossy_array", type: [LossyStruct].self, underlyingError: .wrappedError(Corrupted()))
+        let invalidLosslessArrayThrownError = KodableError.failedDecodingType(type: InvalidLosslessArray.self, underlyingError: invalidFailedProperty)
+        assert(try InvalidLosslessArray.decodeJSON(from: KodableTests.json), throws: invalidLosslessArrayThrownError)
+
+        let missingContext = DecodingError.Context(codingPath: [], debugDescription: "", underlyingError: nil)
+        let keyNotFound = DecodingError.keyNotFound(AnyCodingKey(stringValue: "missing_array")!, missingContext)
+        let missingFailedProperty = KodableError.failedDecodingProperty(property: "array", key: "missing_array", type: [String].self, underlyingError: .wrappedError(keyNotFound))
+        let missingArrayThrownError = KodableError.failedDecodingType(type: MissingArray.self, underlyingError: missingFailedProperty)
+        assert(try MissingArray.decodeJSON(from: KodableTests.json), throws: missingArrayThrownError)
     }
 
     // MARK: - Mix And Match With Codable Tests
@@ -707,7 +749,10 @@ final class KodableTests: XCTestCase {
         struct Dates: Kodable {
             @CodableDate("social") var isoDate: Date
         }
-        assert(try Dates.decodeJSON(from: KodableTests.json), throws: KodableError.failedToParseDate(source: "123456789987654321"))
+
+        let cannotDecodeDate = KodableError.failedToParseDate(source: "123456789987654321")
+        let thrownError = KodableError.failedDecodingType(type: Dates.self, underlyingError: cannotDecodeDate)
+        assert(try Dates.decodeJSON(from: KodableTests.json), throws: thrownError)
     }
 
     // MARK: - Equatable
@@ -778,6 +823,99 @@ final class KodableTests: XCTestCase {
         XCTAssertTrue(optionalEnum.isNil)
     }
 
+    // MARK: - Error Tests
+
+    func testFailableExpressionAndFallBackError() throws {
+        struct FirstError: Error {}
+        struct SecondError: Error {}
+
+        typealias Expression = () throws -> Int
+        let successExpresion: Expression = { 1 }
+        let firstError: Expression = { throw FirstError() }
+        let secondError: Expression = { throw SecondError() }
+
+        let success = try failableExpression(successExpresion(), withFallback: successExpresion())
+        XCTAssertEqual(success, 1)
+        let firstErrorButResult = try failableExpression(firstError(), withFallback: successExpresion())
+        XCTAssertEqual(firstErrorButResult, 1)
+        assert(try failableExpression(firstError(), withFallback: secondError()), throws: FailableExpressionWithFallbackError(main: FirstError(), fallback: SecondError()))
+    }
+
+    func testKodableErrorNode() throws {
+        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "", key: "").description, "* failing type \(String.self)")
+        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "property", key: "property").description, "* failing property: \"\("property")\" of type \(String.self)")
+        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "dateCreated", key: "created_at").description, "* failing property: \"\("dateCreated")\"(key: \"\("created_at")\") of type \(String.self)")
+    }
+
+    func testBetterDecodingError() {
+        let context: DecodingError.Context = .init(codingPath: [], debugDescription: "", underlyingError: nil)
+        // Any Error
+        XCTAssertEqual(BetterDecodingError(with: DummyError()).description, DummyError().localizedDescription)
+        // Data Corrupted
+        let dataCorrupted = DecodingError.dataCorrupted(context)
+        XCTAssertEqual(BetterDecodingError(with: dataCorrupted).description, "Data corrupted. \(context.debugDescription) ")
+        // Key Not Found
+        let keyNotFound = DecodingError.keyNotFound(AnyCodingKey(stringValue: "key")!, context)
+        XCTAssertEqual(BetterDecodingError(with: keyNotFound).description, "Key not found. Expected -> \("key") <- at: \(context.prettyPath())")
+        // Type Mismatch
+        let typeMismatch = DecodingError.typeMismatch(String.self, context)
+        XCTAssertEqual(BetterDecodingError(with: typeMismatch).description, "Type mismatch. \(context.debugDescription), at: \(context.prettyPath())")
+        // Value Not Found
+        let valueNotFound = DecodingError.valueNotFound(String.self, context)
+        XCTAssertEqual(BetterDecodingError(with: valueNotFound).description, "Value not found. -> \(context.prettyPath()) <- \(context.debugDescription)")
+    }
+
+    func testKodableErrorIsEquatable() {
+        let failedDate = KodableError.failedToParseDate(source: "")
+        XCTAssertNotEqual(KodableError.wrappedError(DummyError()), KodableError.wrappedError(Corrupted()))
+        XCTAssertEqual(KodableError.wrappedError(failedDate), KodableError.wrappedError(failedDate))
+        XCTAssertEqual(KodableError.wrappedError(DummyError()), KodableError.wrappedError(DummyError()))
+        XCTAssertEqual(KodableError.failedToParseDate(source: "29-03-2020"), KodableError.failedToParseDate(source: "29-03-2020"))
+        XCTAssertEqual(KodableError.validationFailed(type: String.self, property: "same", parsedValue: 1), KodableError.validationFailed(type: String.self, property: "same", parsedValue: 2))
+        let sameError = KodableError.failedToParseDate(source: "corrupted_date")
+        XCTAssertEqual(KodableError.failedDecodingProperty(property: "date", key: "createdAt", type: Date.self, underlyingError: sameError), KodableError.failedDecodingProperty(property: "date", key: "createdAt", type: Date.self, underlyingError: sameError))
+        XCTAssertEqual(KodableError.failedDecodingType(type: Int.self, underlyingError: sameError), KodableError.failedDecodingType(type: Int.self, underlyingError: sameError))
+        XCTAssertNotEqual(KodableError.failedDecodingType(type: Int.self, underlyingError: sameError), KodableError.wrappedError(DummyError()))
+    }
+
+    func testKodableErrorDescription() {
+        XCTAssertEqual(KodableError.wrappedError(DummyError()).errorDescription, "Cause: \(BetterDecodingError(with: DummyError()).description)")
+        XCTAssertEqual(KodableError.dataNotFound.errorDescription, "Missing key (or null value) for property marked as required.")
+        XCTAssertEqual(KodableError.failedToParseDate(source: "30-01-2022").errorDescription, "Could not parse Date from this value: \("30-01-2022")")
+        XCTAssertEqual(KodableError.validationFailed(type: String.self, property: "property", parsedValue: 1).errorDescription, "Could not decode type \(String.self). Validation for the property \("property") failed. The parsed value was \(1)")
+        XCTAssertEqual(KodableError.failedDecodingProperty(property: "property", key: "key", type: String.self, underlyingError: .wrappedError(DummyError())).errorDescription, "Could not decode type \(String.self). Failed to decode property \("property") for key \("key")")
+        XCTAssertEqual(KodableError.failedDecodingType(type: String.self, underlyingError: .wrappedError(DummyError())).errorDescription, "Could not decode an instance of \(String.self):\n")
+    }
+
+    func testKodableInternalNode() {
+        let validationFailed = KodableError.validationFailed(type: Date.self, property: "property", parsedValue: 1)
+        let failedToParseDate = KodableError.failedToParseDate(source: "29-12-2022")
+        let failedDecodingType = KodableError.failedDecodingType(type: Date.self, underlyingError: failedToParseDate)
+        // Test Failed Decoding Type
+        XCTAssertEqual(failedDecodingType.nextIteration?.0, failedToParseDate.nextIteration?.0)
+        XCTAssertEqual(failedDecodingType.nextIteration?.1, failedToParseDate.nextIteration?.1)
+        // Test Failed Decoding Property
+        let failedDecodingProperty = KodableError.failedDecodingProperty(property: "property", key: "key", type: Date.self, underlyingError: failedToParseDate)
+        XCTAssertEqual(failedDecodingProperty.nextIteration?.0, KodableError.Node(type: Date.self, propertyName: "property", key: "key"))
+        XCTAssertEqual(failedDecodingProperty.nextIteration?.1, failedToParseDate)
+        // Test Data Not Found
+        XCTAssertNil(KodableError.dataNotFound.nextIteration)
+        // Test Failed To Parse Date
+        XCTAssertNil(failedToParseDate.nextIteration)
+        // Test Validation Failed
+        XCTAssertNil(validationFailed.nextIteration)
+
+        // Test Wrapped Error
+        // Nil for non Kodable Errors
+        XCTAssertNil(KodableError.wrappedError(DummyError()).nextIteration)
+        // Passthrough for all Kodable Errors but failedDecodingType
+        XCTAssertEqual(KodableError.wrappedError(failedToParseDate).nextIteration?.0, failedToParseDate.nextIteration?.0)
+        XCTAssertEqual(KodableError.wrappedError(failedToParseDate).nextIteration?.1, failedToParseDate.nextIteration?.1)
+        // Special Handling for failedDecodingType
+        XCTAssertEqual(KodableError.wrappedError(failedDecodingType).nextIteration?.0, KodableError.Node(type: Date.self, propertyName: "", key: ""))
+        XCTAssertEqual(KodableError.wrappedError(failedDecodingType).nextIteration?.1, failedToParseDate)
+    }
+
     // MARK: - Utilities
 
     /// Utility to compare `Any?` elements.
@@ -787,6 +925,8 @@ final class KodableTests: XCTestCase {
     }
 
     // MARK: - Test Data
+
+    struct DummyError: Error {}
 
     static let testDate = Date()
 
