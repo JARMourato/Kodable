@@ -185,9 +185,9 @@ final class KodableTests: XCTestCase {
 
         let data = KodableTests.json
         let validationFailed = KodableError.validationFailed(type: Int.self, property: "width", parsedValue: 400)
-        let errorThrown = KodableError.failedDecodingType(type: Failed.self, underlyingError: validationFailed)
+        let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: validationFailed)
 
-        assert(try Failed.decodeJSON(from: data), throws: errorThrown)
+        assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
 
     func testEnforceType() {
