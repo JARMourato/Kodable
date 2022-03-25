@@ -854,6 +854,33 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(KodableError.failedDecodingType(type: String.self, underlyingError: .wrappedError(DummyError())).errorDescription, "Could not decode an instance of \(String.self):\n")
     }
 
+    func testKodableInternalNode() {
+        let validationFailed = KodableError.validationFailed(type: Date.self, property: "property", parsedValue: 1)
+        let failedToParseDate = KodableError.failedToParseDate(source: "29-12-2022")
+        let failedDecodingType = KodableError.failedDecodingType(type: Date.self, underlyingError: failedToParseDate)
+        // Test Failed Decoding Type
+        XCTAssertEqual(failedDecodingType.nextIteration?.0, failedToParseDate.nextIteration?.0)
+        XCTAssertEqual(failedDecodingType.nextIteration?.1, failedToParseDate.nextIteration?.1)
+        // Test Failed Decoding Property
+        let failedDecodingProperty = KodableError.failedDecodingProperty(property: "property", key: "key", type: Date.self, underlyingError: failedToParseDate)
+        XCTAssertEqual(failedDecodingProperty.nextIteration?.0, KodableError.Node(type: Date.self, propertyName: "property", key: "key"))
+        XCTAssertEqual(failedDecodingProperty.nextIteration?.1, failedToParseDate)
+        // Test Failed To Parse Date
+        XCTAssertNil(failedToParseDate.nextIteration)
+        // Test Validation Failed
+        XCTAssertNil(validationFailed.nextIteration)
+
+        // Test Wrapped Error
+        // Nil for non Kodable Errors
+        XCTAssertNil(KodableError.wrappedError(DummyError()).nextIteration)
+        // Passthrough for all Kodable Errors but failedDecodingType
+        XCTAssertEqual(KodableError.wrappedError(failedToParseDate).nextIteration?.0, failedToParseDate.nextIteration?.0)
+        XCTAssertEqual(KodableError.wrappedError(failedToParseDate).nextIteration?.1, failedToParseDate.nextIteration?.1)
+        // Special Handling for failedDecodingType
+        XCTAssertEqual(KodableError.wrappedError(failedDecodingType).nextIteration?.0, KodableError.Node(type: Date.self, propertyName: "", key: ""))
+        XCTAssertEqual(KodableError.wrappedError(failedDecodingType).nextIteration?.1, failedToParseDate)
+    }
+
     // MARK: - Utilities
 
     /// Utility to compare `Any?` elements.

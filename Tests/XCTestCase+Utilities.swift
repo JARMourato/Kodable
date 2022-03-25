@@ -22,3 +22,9 @@ extension FailableExpressionWithFallbackError: Equatable {
         lhs.errorTypes == rhs.errorTypes
     }
 }
+
+extension KodableError.Node: Equatable {
+    public static func == (lhs: KodableError.Node, rhs: KodableError.Node) -> Bool {
+        lhs.description == rhs.description
+    }
+}
