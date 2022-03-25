@@ -846,6 +846,14 @@ final class KodableTests: XCTestCase {
         XCTAssertNotEqual(KodableError.failedDecodingType(type: Int.self, underlyingError: sameError), KodableError.wrappedError(DummyError()))
     }
 
+    func testKodableErrorDescription() {
+        XCTAssertEqual(KodableError.wrappedError(DummyError()).errorDescription, "Cause: \(BetterDecodingError(with: DummyError()).description)")
+        XCTAssertEqual(KodableError.failedToParseDate(source: "30-01-2022").errorDescription, "Could not parse Date from this value: \("30-01-2022")")
+        XCTAssertEqual(KodableError.validationFailed(type: String.self, property: "property", parsedValue: 1).errorDescription, "Could not decode type \(String.self). Validation for the property \("property") failed. The parsed value was \(1)")
+        XCTAssertEqual(KodableError.failedDecodingProperty(property: "property", key: "key", type: String.self, underlyingError: .wrappedError(DummyError())).errorDescription, "Could not decode type \(String.self). Failed to decode property \("property") for key \("key")")
+        XCTAssertEqual(KodableError.failedDecodingType(type: String.self, underlyingError: .wrappedError(DummyError())).errorDescription, "Could not decode an instance of \(String.self):\n")
+    }
+
     // MARK: - Utilities
 
     /// Utility to compare `Any?` elements.
