@@ -399,13 +399,13 @@ Which will then output:
 
 While developing it might be useful to know what JSON is being received, so that we can be sure that the options chosen lead to correct decoding. There are several ways to do this, however, for simplicity sake, Kodable provides a simple way to print the JSON value received. 
 
-Lets take for example the following JSON and Kodable models
+Let's take for example the following JSON and Kodable models:
 
-```Swift
+```swift
 {
-    identifier: "1",
+    "identifier": "1",
     "social": 987654321,
-    "first_name": John,
+    "first_name": "John",
     "address": {
         "zipCode": 94040,
         "state": "CA"
@@ -427,9 +427,9 @@ struct User: Kodable {
 }
 ```
 
-Kodable provides 2 ways to debug the JSON that will be used to decode the `User` model. The first is to check the whole JSON value for the model. In order to do that is needed is to conform the model to the `DebugJSON` protocol: 
+Kodable provides 2 ways to debug the JSON that will be used to decode the `User` model. The first is to check the whole JSON value for the model. To achieve that, conform the model to the `DebugJSON` protocol: 
 
-```Swift
+```swift
 struct User: Kodable, DebugJSON {
     /.../
 }
@@ -437,12 +437,12 @@ struct User: Kodable, DebugJSON {
 
 Whenever an instance of the `User` model is decoded you'll get the following message in the console
 
-```Swift
+```js
 Decoded JSON for type User:
 {
-    identifier: "1",
+    "identifier": "1",
     "social": 987654321,
-    "first_name": John,
+    "first_name": "John",
     "address": {
         "zipCode": 94040,
         "state": "CA"
@@ -463,16 +463,15 @@ struct User: Kodable {
 }
 ```
 
-In which case, for every instance of the `User` model that is decoded, you'll get the following message in the console
+In which case, for every instance of the `User` model that is decoded, you'll get the following message in the console:
 
-```Swift
+```js
 Decoded JSON for the address property of type User:
 {
     "zipCode": 94040,
     "state": "CA"
 }
 ```
-
 
 ## Contributions
 
