@@ -10,17 +10,14 @@ import Foundation
         set { super.wrappedValue = newValue }
     }
 
-    /// - Parameters:
-    ///   - decoding: Changes the decoding method used. Defaults to `decoding(.enforceType)`.
-    public convenience init(decoding: PropertyDecoding = .enforceType, encodeAsNullIfNil: Bool = false, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
-        self.init(key: nil, decoding: decoding, encodeAsNullIfNil: encodeAsNullIfNil, modifiers: modifiers, defaultValue: value)
+    public convenience init(_ options: KodableOption<TargetType>..., default value: TargetType? = nil) {
+        self.init(key: nil, options: options, defaultValue: value)
     }
 
     /// - Parameters:
     ///   - key: Customize the string key used to decode the value. Nested values are supported through the usage of the `.` notation.
-    ///   - decoding: Changes the decoding method used. Defaults to `decoding(.enforceType)`.
-    public convenience init(_ key: String, decoding: PropertyDecoding = .enforceType, encodeAsNullIfNil: Bool = false, _ modifiers: KodableModifier<TargetType>..., default value: TargetType? = nil) {
-        self.init(key: key, decoding: decoding, encodeAsNullIfNil: encodeAsNullIfNil, modifiers: modifiers, defaultValue: value)
+    public convenience init(_ key: String, _ options: KodableOption<TargetType>..., default value: TargetType? = nil) {
+        self.init(key: key, options: options, defaultValue: value)
     }
 }
 
