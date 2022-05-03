@@ -1,6 +1,7 @@
 import Foundation
 
 // MARK: - Property Decoding
+
 extension KodableOption {
     /// Enforces the property type when decoding. If the value present in the decoder does not match, decoding will fail. This is the default option.
     static var enforceType: KodableOption { .propertyDecoding(.enforceType) }
@@ -14,12 +15,14 @@ extension KodableOption {
 // MARK: - Value Decoded
 
 // MARK: Syntatic Sugar
+
 public extension KodableOption {
     static func overrideValue(_ overrideValue: @escaping KodableModifier<Value>.OverrideValueClosure) -> KodableOption { .modifier(KodableModifier(overrideValue)) }
     static func validation(_ validation: @escaping KodableModifier<Value>.ValidationClosure) -> KodableOption { .modifier(KodableModifier(validation)) }
 }
 
 // MARK: String Presets
+
 public extension KodableOption where Value == String {
     /// Applies `trimmingCharacters(in: .whitespacesAndNewlines)` to the value decoded. Only applicable to String and Optional<String>
     static var trimmed: KodableOption { .modifier(KodableModifier { $0.trimmingCharacters(in: .whitespacesAndNewlines) }) }
@@ -39,6 +42,7 @@ public extension KodableOption where Value == String? {
 }
 
 // MARK: Comparable Presets
+
 public extension KodableOption where Value: Comparable {
     /// Clamps the value in a range. Only applicable to types conforming to Comparable
     static func clamping(to range: ClosedRange<Value>) -> KodableOption { .modifier(KodableModifier { $0.constrained(to: range) }) }

@@ -4,7 +4,7 @@ import JSEN
 public protocol DebugJSON {}
 
 func debugJSONType<T>(from decoder: Decoder, for type: T.Type) {
-    let jsen = try? JSEN.init(from: decoder)
+    let jsen = try? JSEN(from: decoder)
     printJSON(jsen, for: nil, with: type)
 }
 
@@ -19,8 +19,8 @@ private func printJSON<T>(_ jsen: JSEN?, for propertyName: String?, with type: T
     print("Decoded JSON for \(propertyString)type \(type):\n\(debugString)\n\n")
 }
 
-
 // MARK: - JSEN Helpers
+
 extension JSEN {
     func prettyPrinted() -> String {
         let encoder = JSONEncoder()

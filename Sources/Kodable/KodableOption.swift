@@ -11,6 +11,7 @@ public enum KodableOption<Value> {
 // MARK: - Helper Types
 
 // MARK: Decoding Strategy
+
 public enum PropertyDecoding {
     case enforceType
     case lossless
@@ -18,6 +19,7 @@ public enum PropertyDecoding {
 }
 
 // MARK: Modifying decoded value
+
 public struct KodableModifier<T> {
     private let overrideValue: OverrideValueClosure
     private let validation: ValidationClosure
@@ -44,14 +46,15 @@ public struct KodableModifier<T> {
 }
 
 // MARK: - Helpers
+
 extension KodableOption {
     var modifier: KodableModifier<Value>? {
-        guard case .modifier(let value) = self else { return nil }
+        guard case let .modifier(value) = self else { return nil }
         return value
     }
 
     var propertyDecoding: PropertyDecoding? {
-        guard case .propertyDecoding(let value) = self else { return nil }
+        guard case let .propertyDecoding(value) = self else { return nil }
         return value
     }
 }
