@@ -12,11 +12,12 @@ let package = Package(
         .library(name: "Kodable", targets: ["Kodable"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/wickwirew/Runtime", from: "2.2.2"),
         .package(url: "https://github.com/mattgallagher/CwlPreconditionTesting.git", from: "2.1.0"),
+        .package(url: "https://github.com/rogerluan/JSEN", from: "1.1.2"),
+        .package(url: "https://github.com/wickwirew/Runtime", from: "2.2.2"),
     ],
     targets: [
-        .target(name: "Kodable", dependencies: ["Runtime"], path: "Sources"),
+        .target(name: "Kodable", dependencies: ["Runtime", "JSEN"], path: "Sources"),
         .testTarget(name: "KodableTests", dependencies: ["CwlPreconditionTesting", "Kodable"], path: "Tests"),
     ]
 )
