@@ -59,11 +59,11 @@ final class KodableTests: XCTestCase {
     }
 
     func testEncodingAndDecodingUsingCoder() {
-        struct User: Kodable {
+        struct User: Kodable, DebugJSON {
             @Coding("first_name") var firstName: String
             @Coding(default: "Absent optional") var phone: String?
             @Coding(default: "Absent non-optional") var telephone: String
-            @Coding("home_address") var address: String?
+            @Coding("home_address", .debugJSON) var address: String?
             @Coding var name: String
         }
 
