@@ -93,6 +93,10 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let originalTypeIsOptional = try Reflection.typeInformation(of: OriginalType.self).kind == .optional
         let targetTypeIsOptional = try Reflection.typeInformation(of: TargetType.self).kind == .optional
 
+        if debugJSON {
+            debugJSONProperty(from: container, for: propertyName, with: TargetType.self)
+        }
+
         // When the property type is optional, parsing may fail
         if originalTypeIsOptional, targetTypeIsOptional {
             guard let decoded = try? decodeSourceValue(with: propertyName, from: container, typeIsOptional: originalTypeIsOptional) else { return }
