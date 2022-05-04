@@ -32,6 +32,10 @@ public extension Dekodable {
         do {
             let container = try decoder.anyDecodingContainer()
 
+            if let _ = self as? DebugJSON {
+                debugJSONType(from: decoder, for: type(of: self))
+            }
+
             let currentType = try Reflection.typeInformation(of: type(of: self))
 
             for property in currentType.properties {

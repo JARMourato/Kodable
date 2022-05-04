@@ -41,6 +41,7 @@ Table of contents
          * [Validating Values](#validating-values)
          * [Custom Wrapper](#custom-wrapper)
          * [Encode null values](#encode-null-values)
+      * [Debugging](#debugging)
       * [Contributions](#contributions)
       * [License](#license)
       * [Contact](#contact)
@@ -186,7 +187,7 @@ The lossy decoding on `Array` is done by trying to decode each element from a `A
 
 ```Swift
 struct LossyArray: Kodable {
-    @Coding("failable_array", decoding: .lossy) var array: [String]
+    @Coding("failable_array", .lossy) var array: [String]
 }
 
 let json = """
@@ -205,7 +206,7 @@ Tries to decode a `Bool` from `Int` or `String` if `Bool` fails
 
 ```Swift
 struct Fail: Kodable {
-    @Coding("string_bool", decoding: .enforceTypeDecoding) var notBool: Bool
+    @Coding("string_bool", .enforceTypeDecoding) var notBool: Bool
 }
 
 struct Success: Kodable {
@@ -259,7 +260,7 @@ You can provide a `KodableModifier.custom` modifier with an overriding closure s
 
 ```Swift
 struct Project: Kodable {
-    @Coding(Project.trimmed) var title: String
+    @Coding(.modifier(Project.trimmed)) var title: String
     
     static var trimmed: KodableModifier<String> { 
         KodableModifier { $0.trimmingCharacters(in: .whitespacesAndNewlines) } 
@@ -373,12 +374,12 @@ When encoded will output:
 }
 ```
 
-However, if you want to explicitly encode null values, then you can set `encodeAsNullIfNil` property to be true: 
+However, if you want to explicitly encode null values, then you can add the `encodeAsNullIfNil` option: 
 
 ```swift
 struct User: Kodable {
     @Coding var firstName: String
-    @Coding(encodeAsNullIfNil: true) var lastName: String?
+    @Coding(.encodeAsNullIfNil) var lastName: String?
 }
 
 let user = User()
@@ -391,6 +392,84 @@ Which will then output:
 {
     "firstName": "João",
     "lastName": null
+}
+```
+
+## Debugging
+
+While developing it might be useful to know what JSON is being received, so that we can be sure that the options chosen lead to correct decoding. There are several ways to do this, however, for simplicity sake, Kodable provides a simple way to print the JSON value received. 
+
+Let's take for example the following JSON and Kodable models:
+
+```swift
+{
+    "identifier": "1",
+    "social": 987654321,
+    "first_name": "John",
+    "address": {
+        "zipCode": 94040,
+        "state": "CA"
+    },
+    "aliases": [ "Jay", "Doe" ]
+}
+
+struct Address: Codable {
+    let zipCode: Int
+    let state: String 
+}
+
+struct User: Kodable {
+    var identifier: String = ""
+    var social: String?
+    @Coding("first_name") var firstName: String
+    @Coding(default: "+1 123456789") var phone: String
+    @Coding var address: Address
+}
+```
+
+Kodable provides 2 ways to debug the JSON that will be used to decode the `User` model. The first is to check the whole JSON value for the model. To achieve that, conform the model to the `DebugJSON` protocol: 
+
+```swift
+struct User: Kodable, DebugJSON {
+    /.../
+}
+```
+
+Whenever an instance of the `User` model is decoded you'll get the following message in the console
+
+```js
+Decoded JSON for type User:
+{
+    "identifier": "1",
+    "social": 987654321,
+    "first_name": "John",
+    "address": {
+        "zipCode": 94040,
+        "state": "CA"
+    },
+    "aliases": [ "Jay", "Doe" ]
+}
+```
+
+However, sometimes the model can be quite extensive and you're only interested in a specific nested model. In that case, there is a second option which is to mark only the property you want with the option `.debugJSON`: 
+
+```Swift
+struct User: Kodable {
+    var identifier: String = ""
+    var social: String?
+    @Coding("first_name") var firstName: String
+    @Coding(default: "+1 123456789") var phone: String
+    @Coding(.debugJSON) var address: Address
+}
+```
+
+In which case, for every instance of the `User` model that is decoded, you'll get the following message in the console:
+
+```js
+Decoded JSON for the address property of type User:
+{
+    "zipCode": 94040,
+    "state": "CA"
 }
 ```
 

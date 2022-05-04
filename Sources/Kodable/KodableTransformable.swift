@@ -17,10 +17,8 @@ public protocol KodableTransform {
 @propertyWrapper open class KodableTransformable<T: KodableTransform>: Codable {
     internal var transformer = T()
     internal var _value: T.To?
-    private let modifiers: [KodableModifier<TargetType>]
+    private let options: [KodableOption<TargetType>]
     public private(set) var key: String?
-    public private(set) var decoding: PropertyDecoding = .enforceType
-    public private(set) var encodeAsNullIfNil: Bool = false
 
     public typealias OriginalType = T.From
     public typealias TargetType = T.To
@@ -39,18 +37,16 @@ public protocol KodableTransform {
         set { _value = newValue }
     }
 
-    public init(key: String? = nil, decoding: PropertyDecoding, encodeAsNullIfNil: Bool, modifiers: [KodableModifier<TargetType>], defaultValue: TargetType?) {
+    public init(key: String? = nil, options: [KodableOption<TargetType>], defaultValue: TargetType?) {
         self.key = key
-        self.modifiers = modifiers
-        self.decoding = decoding
-        self.encodeAsNullIfNil = encodeAsNullIfNil
+        self.options = options
         _value = defaultValue
     }
 
     // MARK: Public Initializers
 
     public init() {
-        modifiers = []
+        options = []
     }
 
     // MARK: Codable Conformance
@@ -59,7 +55,7 @@ public protocol KodableTransform {
     public required init(from decoder: Decoder) throws {
         let decodedValue = try T.From(from: decoder)
         _value = try transformer.transformFromJSON(value: decodedValue)
-        modifiers = []
+        options = []
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -92,6 +88,10 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         let fromValue: OriginalType
         let originalTypeIsOptional = try Reflection.typeInformation(of: OriginalType.self).kind == .optional
         let targetTypeIsOptional = try Reflection.typeInformation(of: TargetType.self).kind == .optional
+
+        if debugJSON {
+            debugJSONProperty(from: container, for: propertyName, with: TargetType.self)
+        }
 
         // When the property type is optional, parsing may fail
         if originalTypeIsOptional, targetTypeIsOptional {
@@ -172,14 +172,28 @@ extension KodableTransformable: EncodableProperty where OriginalType: Encodable 
     }
 }
 
-// MARK: - Property Decoding
+// MARK: - Options
 
-public enum PropertyDecoding {
-    /// Enforces the property type when decoding. If the value present in the decoder does not match, decoding will fail. This is the default option.
-    case enforceType
-    /// Tries decoding the property type from other compatible types, adding resilence to the decoding process. This uses `LosslessStringConvertible` under the hood.
-    case lossless
-    /// This option is only relevant to `Collection` types. It allows to decode elements, ignoring individual elements for which decoding failed.
-    /// if selected for non compatible types, `enforceType` will be used
-    case lossy
+extension KodableTransformable {
+    public var decoding: PropertyDecoding {
+        options.compactMap(\.propertyDecoding).last ?? .enforceType
+    }
+
+    private var debugJSON: Bool {
+        options.contains { option in
+            guard case .debugJSON = option else { return false }
+            return true
+        }
+    }
+
+    public var encodeAsNullIfNil: Bool {
+        options.contains { option in
+            guard case .encodeAsNullIfNil = option else { return false }
+            return true
+        }
+    }
+
+    private var modifiers: [KodableModifier<TargetType>] {
+        options.compactMap(\.modifier)
+    }
 }

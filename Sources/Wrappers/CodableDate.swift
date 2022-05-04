@@ -18,16 +18,16 @@ import Foundation
         super.init()
     }
 
-    public init(decoding: PropertyDecoding = .enforceType, encodeAsNullIfNil: Bool = false, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
-        super.init(key: nil, decoding: decoding, encodeAsNullIfNil: encodeAsNullIfNil, modifiers: modifiers, defaultValue: value)
+    public init(_ options: KodableOption<TargetType>..., default value: T? = nil) {
+        super.init(key: nil, options: options, defaultValue: value)
     }
 
-    public init(_ key: String, decoding: PropertyDecoding = .enforceType, encodeAsNullIfNil: Bool = false, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
-        super.init(key: key, decoding: decoding, encodeAsNullIfNil: encodeAsNullIfNil, modifiers: modifiers, defaultValue: value)
+    public init(_ key: String, _ options: KodableOption<TargetType>..., default value: T? = nil) {
+        super.init(key: key, options: options, defaultValue: value)
     }
 
-    public init(_ strategy: DateCodingStrategy, _ key: String? = nil, decoding: PropertyDecoding = .enforceType, encodeAsNullIfNil: Bool = false, _ modifiers: KodableModifier<T>..., default value: T? = nil) {
-        super.init(key: key, decoding: decoding, encodeAsNullIfNil: encodeAsNullIfNil, modifiers: modifiers, defaultValue: value)
+    public init(_ strategy: DateCodingStrategy, _ key: String? = nil, _ options: KodableOption<TargetType>..., default value: T? = nil) {
+        super.init(key: key, options: options, defaultValue: value)
         transformer.strategy = strategy
     }
 

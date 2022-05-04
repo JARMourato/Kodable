@@ -48,7 +48,7 @@ final class KodableTests: XCTestCase {
     func testEncodingNullValuesOutput() throws {
         struct Strings: Kodable {
             @Coding var optionalString: String?
-            @Coding(encodeAsNullIfNil: true) var nullOptionalString: String?
+            @Coding(.encodeAsNullIfNil) var nullOptionalString: String?
         }
 
         let strings = Strings()
@@ -59,11 +59,11 @@ final class KodableTests: XCTestCase {
     }
 
     func testEncodingAndDecodingUsingCoder() {
-        struct User: Kodable {
+        struct User: Kodable, DebugJSON {
             @Coding("first_name") var firstName: String
             @Coding(default: "Absent optional") var phone: String?
             @Coding(default: "Absent non-optional") var telephone: String
-            @Coding("home_address") var address: String?
+            @Coding("home_address", .debugJSON) var address: String?
             @Coding var name: String
         }
 
@@ -192,11 +192,11 @@ final class KodableTests: XCTestCase {
 
     func testEnforceType() {
         struct Failed: Kodable {
-            @Coding("string_bool", decoding: .enforceType) var notBool: Bool
+            @Coding("string_bool", .enforceType) var notBool: Bool
         }
 
         struct Success: Kodable {
-            @Coding("animated", decoding: .enforceType) var isBool: Bool
+            @Coding("animated", .enforceType) var isBool: Bool
         }
 
         do {
@@ -329,8 +329,8 @@ final class KodableTests: XCTestCase {
         struct Bools: Kodable {
             @Coding("animated") var regularBool: Bool
             @Coding("optional_bool") var optionalBool: Bool?
-            @Coding("string_bool", decoding: .lossless) var boolFromString: Bool
-            @Coding("int_bool", decoding: .lossless) var boolFromInt: Bool
+            @Coding("string_bool", .lossless) var boolFromString: Bool
+            @Coding("int_bool", .lossless) var boolFromInt: Bool
         }
 
         do {
@@ -357,16 +357,16 @@ final class KodableTests: XCTestCase {
         struct Strings: Kodable {
             @Coding("first_name") var regularString: String
             @Coding("home_address") var optionalString: String?
-            @Coding("width", decoding: .lossless) var stringFromInt: String
-            @Coding("amount", decoding: .lossless) var stringFromDouble: String
+            @Coding("width", .lossless) var stringFromInt: String
+            @Coding("amount", .lossless) var stringFromDouble: String
         }
 
         struct FailingString: Kodable {
-            @Coding("languages", decoding: .lossless) var string: String
+            @Coding("languages", .lossless) var string: String
         }
 
         struct MissingString: Kodable {
-            @Coding("missing_languages", decoding: .lossless) var string: String
+            @Coding("missing_languages", .lossless) var string: String
         }
 
         do {
@@ -469,24 +469,24 @@ final class KodableTests: XCTestCase {
         }
 
         struct LosslessArray: Kodable {
-            @Coding("failable_array", decoding: .lossless) var array: [String]?
+            @Coding("failable_array", .lossless) var array: [String]?
         }
 
         struct LossyStruct: Kodable {
-            @Coding("name", decoding: .lossless) var name: String
+            @Coding("name", .lossless) var name: String
         }
 
         struct LossyArray: Kodable {
-            @Coding("failable_lossy_array", decoding: .lossy) var array: [LossyStruct]
+            @Coding("failable_lossy_array", .lossy) var array: [LossyStruct]
         }
 
         struct EnforcedTypeArray: Kodable {
-            @Coding("failable_array", decoding: .enforceType)
+            @Coding("failable_array", .enforceType)
             var array: [String]
         }
 
         struct InvalidLosslessArray: Kodable {
-            @Coding("failable_lossy_array", decoding: .lossless) var array: [LossyStruct]
+            @Coding("failable_lossy_array", .lossless) var array: [LossyStruct]
         }
 
         struct MissingArray: Kodable {
@@ -542,7 +542,7 @@ final class KodableTests: XCTestCase {
             @Coding(default: "Absent optional") var phone: String?
             @Coding(default: "Absent non-optional") var telephone: String
             @Coding("home_address") var address: String?
-            @Coding("amount", decoding: .lossless) var amountString: String?
+            @Coding("amount", .lossless) var amountString: String?
             @Coding("animated") var hasAnimation: Bool
             @Coding("animated") var optionalAnimation: Bool?
             @Coding var name: String
@@ -665,14 +665,14 @@ final class KodableTests: XCTestCase {
         }
 
         struct Dates: Kodable {
-            @CodableDate(decoding: .enforceType) var iso8601: Date
+            @CodableDate(.enforceType) var iso8601: Date
             @CodableDate("iso8601") var isoDate: Date?
             @CodableDate(.iso8601WithMillisecondPrecision, "iso8601_millisecond_date") var isoNanosecondDate: Date?
             @CodableDate(.format("y-MM-dd"), "simple_date") var simpleDate: Date
             @CodableDate(.rfc2822, "rfc2822") var rfc2822Date: Date
             @CodableDate(.rfc3339, "rfc3339") var rfc3339Date: Date
-            @CodableDate(.timestamp, "timestamp", decoding: .lossless) var nonOptionalTimestamp: Date
-            @CodableDate(.timestamp, "timestamp", decoding: .lossless) var timestamp: Date?
+            @CodableDate(.timestamp, "timestamp", .lossless) var nonOptionalTimestamp: Date
+            @CodableDate(.timestamp, "timestamp", .lossless) var timestamp: Date?
             @CodableDate(.custom(MyDateParser()), "custom_date") var customDate: Date?
             @CodableDate var optionalDate: Date?
 
