@@ -146,7 +146,7 @@ final class KodableTests: XCTestCase {
 
     // MARK: - Test Modifiers
 
-    func testBasicModifiers() {
+    func testPresetModifiers() {
         struct Basic: Kodable {
             @Coding("id") var basicID: Int
             @Coding("title", .trimmed) var basicTitle: String
@@ -173,6 +173,38 @@ final class KodableTests: XCTestCase {
             XCTAssertEqual(decoded.views, 5400)
             XCTAssertEqual(decoded.teaseImageStringURL, "https://d13yacurqjgara.cloudfront.net/users/136707/screenshots/2623488/create_new_project_teaser.gif")
             XCTAssertEqual(decoded.commentsCount, 10)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+
+    func testSortModifiers() {
+        struct Person: Codable {
+            let id: Int
+            let name: String
+        }
+
+        struct OptionalPerson: Codable {
+            let name: String?
+        }
+
+        struct Sort: Kodable {
+            @Coding("unordered_optional_elements_array", .ascending) var optionalOrdered: [Int?]
+            @Coding("unordered_array", .ascending) var ascendingNumbers: [Int]
+            @Coding("unordered_array", .descending) var descendingNumbers: [Int]
+            @Coding(.ascending(by: \.id)) var people: [Person]
+            @Coding("people", .descending(by: \.name)) var descendingPeople: [Person]
+            @Coding("people_optional", .ascending(by: \.name)) var optionalPeople: [OptionalPerson]
+        }
+
+        do {
+            let decoded = try Sort.decodeJSON(from: KodableTests.json)
+            XCTAssertEqual(decoded.people.map(\.id), [1, 2, 3])
+            XCTAssertEqual(decoded.descendingPeople.map(\.name), ["pete", "joe", "brad"])
+            XCTAssertEqual(decoded.ascendingNumbers, [1, 2, 3, 4, 5])
+            XCTAssertEqual(decoded.descendingNumbers, [5, 4, 3, 2, 1])
+            XCTAssertEqual(decoded.optionalOrdered, [3, 5, 8, nil, nil])
+            XCTAssertEqual(decoded.optionalPeople.map(\.name), ["joe", "pete", nil])
         } catch {
             XCTFail(error.localizedDescription)
         }
@@ -988,6 +1020,14 @@ final class KodableTests: XCTestCase {
         "languages": ["swift", "kotlin", "java"],
         "string_bool": "false",
         "int_bool": 1,
+        "unordered_array": [1, 5, 3, 2, 4],
+        "unordered_optional_elements_array": [8, nil, 5, nil, 3],
+        "people": [
+            ["id": 3, "name": "pete"], ["id": 1, "name": "brad"], ["id": 2, "name": "joe"],
+        ],
+        "people_optional": [
+            ["id": 3, "name": "pete"], ["id": 1, "name": nil], ["id": 2, "name": "joe"],
+        ],
     ]
 
     static var json: Data {
