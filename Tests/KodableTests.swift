@@ -222,6 +222,28 @@ final class KodableTests: XCTestCase {
         assert(try Failed.decodeJSON(from: data), throws: thrownError)
     }
 
+    func testModifierAndValidationOnAssignment() {
+        struct Basic: Kodable {
+            @Coding("title", .trimmed) var basicTitle: String
+            @Coding(.validation { $0 > 300 }) var width: Int
+        }
+
+        do {
+            let decoded = try Basic.decodeJSON(from: KodableTests.json)
+
+            XCTAssertEqual(decoded.basicTitle, "Create New Project")
+            XCTAssertEqual(decoded.width, 400)
+
+            decoded.basicTitle = "        many space"
+            decoded.width = 200
+
+            XCTAssertEqual(decoded.basicTitle, "many space")
+            XCTAssertEqual(decoded.width, 400)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+
     func testEnforceType() {
         struct Failed: Kodable {
             @Coding("string_bool", .enforceType) var notBool: Bool
