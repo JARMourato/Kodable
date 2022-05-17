@@ -282,6 +282,18 @@ There are a few built in modifiers provided already:
 - `trimmed` : Applies `trimmingCharacters(in: .whitespacesAndNewlines)` to the value decoded
 - `trimmedNifIfEmpty` : Applies `trimmingCharacters(in: .whitespacesAndNewlines)` to the value decoded, returns nif if empty
 
+**Sorting**
+The basic sorting can be done using
+- `sorted(using: Comparator)` : Sorts the elements of an array is a _Comparator_ closure that determines whether the items are in increasing order
+
+When the type is `Comparable`
+- `ascending` : Sorts the elements of an array in ascending order
+- `descending` : Sorts the elements of an array in descending order
+
+When the type is *not* but one of its elements are `Comparable`
+- `ascending(by: KeyPath)` : Sorts the elements of an array in ascending order, based on the _KeyPath_ property
+- `descending(by: KeyPath)` : Sorts the elements of an array in descending order, based on the _KeyPath_ property
+
 **Comparable**
 - `clamping(to:)` : Clamps the value in a range.
 - `range()` : Constrains the value inside a provided range.
