@@ -283,16 +283,16 @@ There are a few built in modifiers provided already:
 - `trimmedNifIfEmpty` : Applies `trimmingCharacters(in: .whitespacesAndNewlines)` to the value decoded, returns nif if empty
 
 **Sorting**
-The basic sorting can be done using
-- `sorted(using: Comparator)` : Sorts the elements of an array is a _Comparator_ closure that determines whether the items are in increasing order
+When the type conforms to the `Comparable` protocol:
 
-When the type is `Comparable`
-- `ascending` : Sorts the elements of an array in ascending order
-- `descending` : Sorts the elements of an array in descending order
+- `ascending` or `descending`: Sorts the elements of an array in ascending (or descending) order, using the type's underlying comparison function.
 
-When the type is *not* but one of its elements are `Comparable`
-- `ascending(by: KeyPath)` : Sorts the elements of an array in ascending order, based on the _KeyPath_ property
-- `descending(by: KeyPath)` : Sorts the elements of an array in descending order, based on the _KeyPath_ property
+When the type doesn't conform to the `Comparable` protocol, but one of its properties does:
+
+- `ascending(by: KeyPath)` or `descending(by: KeyPath)`: Sorts the elements of an array in ascending (or descending) order, based on the _KeyPath_ property passed.
+
+If there's no conformance to `Comparable` at all, you can resort to basic sorting functionality:
+- `sorted(using: Comparator)`: Sorts the elements of an array using a _Comparator_ closure that determines whether the items are in increasing order. In Swifty words: `func < (lhs: Value.Element, rhs: Value.Element) -> Bool`
 
 **Comparable**
 - `clamping(to:)` : Clamps the value in a range.
