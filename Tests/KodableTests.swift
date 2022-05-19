@@ -146,7 +146,7 @@ final class KodableTests: XCTestCase {
 
     // MARK: - Test Modifiers
 
-    func testBasicModifiers() {
+    func testPresetModifiers() {
         struct Basic: Kodable {
             @Coding("id") var basicID: Int
             @Coding("title", .trimmed) var basicTitle: String
@@ -178,6 +178,38 @@ final class KodableTests: XCTestCase {
         }
     }
 
+    func testSortModifiers() {
+        struct Person: Codable {
+            let id: Int
+            let name: String
+        }
+
+        struct OptionalPerson: Codable {
+            let name: String?
+        }
+
+        struct Sort: Kodable {
+            @Coding("unordered_optional_elements_array", .ascending) var optionalOrdered: [Int?]
+            @Coding("unordered_array", .ascending) var ascendingNumbers: [Int]
+            @Coding("unordered_array", .descending) var descendingNumbers: [Int]
+            @Coding(.ascending(by: \.id)) var people: [Person]
+            @Coding("people", .descending(by: \.name)) var descendingPeople: [Person]
+            @Coding("people_optional", .ascending(by: \.name)) var optionalPeople: [OptionalPerson]
+        }
+
+        do {
+            let decoded = try Sort.decodeJSON(from: KodableTests.json)
+            XCTAssertEqual(decoded.people.map(\.id), [1, 2, 3])
+            XCTAssertEqual(decoded.descendingPeople.map(\.name), ["pete", "joe", "brad"])
+            XCTAssertEqual(decoded.ascendingNumbers, [1, 2, 3, 4, 5])
+            XCTAssertEqual(decoded.descendingNumbers, [5, 4, 3, 2, 1])
+            XCTAssertEqual(decoded.optionalOrdered, [3, 5, 8, nil, nil])
+            XCTAssertEqual(decoded.optionalPeople.map(\.name), ["joe", "pete", nil])
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+
     func testValidationFailed() {
         struct Failed: Kodable {
             @Coding(.validation { $0 > 500 }) var width: Int
@@ -188,6 +220,28 @@ final class KodableTests: XCTestCase {
         let thrownError = KodableError.failedDecodingType(type: Failed.self, underlyingError: validationFailed)
 
         assert(try Failed.decodeJSON(from: data), throws: thrownError)
+    }
+
+    func testModifierAndValidationOnAssignment() {
+        struct Basic: Kodable {
+            @Coding("title", .trimmed) var basicTitle: String
+            @Coding(.validation { $0 > 300 }) var width: Int
+        }
+
+        do {
+            let decoded = try Basic.decodeJSON(from: KodableTests.json)
+
+            XCTAssertEqual(decoded.basicTitle, "Create New Project")
+            XCTAssertEqual(decoded.width, 400)
+
+            decoded.basicTitle = "        many space"
+            decoded.width = 200
+
+            XCTAssertEqual(decoded.basicTitle, "many space")
+            XCTAssertEqual(decoded.width, 400)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
     }
 
     func testEnforceType() {
@@ -988,6 +1042,14 @@ final class KodableTests: XCTestCase {
         "languages": ["swift", "kotlin", "java"],
         "string_bool": "false",
         "int_bool": 1,
+        "unordered_array": [1, 5, 3, 2, 4],
+        "unordered_optional_elements_array": [8, nil, 5, nil, 3],
+        "people": [
+            ["id": 3, "name": "pete"], ["id": 1, "name": "brad"], ["id": 2, "name": "joe"],
+        ],
+        "people_optional": [
+            ["id": 3, "name": "pete"], ["id": 1, "name": nil], ["id": 2, "name": "joe"],
+        ],
     ]
 
     static var json: Data {

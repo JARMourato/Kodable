@@ -23,18 +23,29 @@ public protocol KodableTransform {
     public typealias OriginalType = T.From
     public typealias TargetType = T.To
 
-    private func _wrappedValue<U>(_: U.Type) -> U {
+    private func getValue<U>(_: U.Type) -> U {
         guard _value != nil || U.self is OptionalProtocol.Type else {
             fatalError("Trying to access a non optional property that has not been decoded - the property value is nil internally")
         }
         return _value as! U
     }
 
+    private func setValue(_ newValue: TargetType, for propertyName: String = "") throws {
+        let finalValue = overrideRawValueIfNeeded(newValue) // 1: Go through all value modifiers and override it if needed
+        let valueIsValid = validate(finalValue) // 2: Go through the validators and check that none fails
+
+        guard valueIsValid else {
+            throw KodableError.validationFailed(type: TargetType.self, property: propertyName, parsedValue: finalValue)
+        }
+
+        _value = finalValue
+    }
+
     /// - Note: this might crash if an instance of a type uses the property wrapper with a non-optional type
     ///         and it can't be decoded, and a default value wasn't provided.
     open var wrappedValue: TargetType {
-        get { _wrappedValue(TargetType.self) } // This is needed so that we can return TargetType as the correct type
-        set { _value = newValue }
+        get { getValue(TargetType.self) } // This is needed so that we can return TargetType as the correct type
+        set { try? setValue(newValue) }
     }
 
     public init(key: String? = nil, options: [KodableOption<TargetType>], defaultValue: TargetType?) {
@@ -68,7 +79,7 @@ public protocol KodableTransform {
 // MARK: Modifier Handling
 
 extension KodableTransformable {
-    private func overrideValueDecoded(_ value: TargetType) -> TargetType {
+    private func overrideRawValueIfNeeded(_ value: TargetType) -> TargetType {
         var modifiedCopy = value
         for modifier in modifiers { modifiedCopy = modifier.overrideValue(modifiedCopy) }
         return modifiedCopy
@@ -109,14 +120,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
         }
 
         let convertedValue = try transformer.transformFromJSON(value: fromValue) // 1: Apply transformation
-        let finalValue = overrideValueDecoded(convertedValue) // 2: Go through all value modifiers and override the decoded value
-        let valueIsValid = validate(finalValue) // 3: Go through the validators and check that none fails
-
-        guard valueIsValid else {
-            throw KodableError.validationFailed(type: TargetType.self, property: propertyName, parsedValue: finalValue)
-        }
-
-        wrappedValue = finalValue
+        try setValue(convertedValue, for: propertyName) // 2: try setting the converted value
     }
 
     private func decodeSourceValue(with propertyName: String, from container: DecodeContainer, typeIsOptional: Bool) throws -> OriginalType {
