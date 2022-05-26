@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Property Decoding
 
-extension KodableOption {
+public extension KodableOption {
     /// Enforces the property type when decoding. If the value present in the decoder does not match, decoding will fail. This is the default option.
     static var enforceType: KodableOption { .propertyDecoding(.enforceType) }
     /// Tries decoding the property type from other compatible types, adding resilence to the decoding process. This uses `LosslessStringConvertible` under the hood.
