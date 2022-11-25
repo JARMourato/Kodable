@@ -48,16 +48,16 @@ public protocol KodableTransform {
         set { try? setValue(newValue) }
     }
 
-    public init(key: String? = nil, options: [KodableOption<TargetType>], defaultValue: TargetType?) {
-        self.key = key
-        self.options = options
-        _value = defaultValue
-    }
-
     // MARK: Public Initializers
 
     public init() {
         options = []
+    }
+
+    public init(key: String? = nil, options: [KodableOption<TargetType>] = [], defaultValue: TargetType? = nil) {
+        self.key = key
+        self.options = options
+        _value = defaultValue
     }
 
     // MARK: Codable Conformance
