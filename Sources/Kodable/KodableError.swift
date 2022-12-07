@@ -22,9 +22,9 @@ extension KodableError: CustomStringConvertible {
         stringErrorTree(for: self)
     }
 
-    private func stringErrorTree(for error: KodableError?, initial: String = "", tabs: Int = 0) -> String {
+    internal func stringErrorTree(for error: KodableError?, initial: String = "", tabs: Int = 0) -> String {
         if error == nil { return initial }
-        let message = initial + String(repeating: "   ", count: tabs) + "\(error?.errorStringDescription ?? "")\n"
+        let message = initial + String(repeating: "   ", count: tabs) + "\(error?.errorDescription ?? "")\n"
         return stringErrorTree(for: error?.nextWrapper, initial: message, tabs: tabs + 1)
     }
 
@@ -42,11 +42,20 @@ extension KodableError: CustomStringConvertible {
         }
     }
 
-    internal var errorStringDescription: String {
-        let hasChildren = nextWrapper != nil
+    internal var hasKodableErrorChildrenErrors: Bool {
+        switch nextWrapper {
+        case nil: return false
+        case let .wrappedError(error):
+            guard let _ = error as? KodableError else { return false }
+            return true
+        default: return true
+        }
+    }
+
+    internal var errorDescription: String {
         switch self {
         case let .wrappedError(error):
-            return hasChildren ? "" : "Cause: \(BetterDecodingError(with: error).description)"
+            return hasKodableErrorChildrenErrors ? "" : "Cause: \(BetterDecodingError(with: error).description)"
         case .dataNotFound:
             return "Missing key (or null value) for property marked as required."
         case let .failedToParseDate(source):
@@ -54,13 +63,13 @@ extension KodableError: CustomStringConvertible {
         case let .validationFailed(type, property, parsedValue):
             return "Validation failed for property \"\(property)\" on type \"\(type)\". The parsed value was \(parsedValue)"
         case let .failedDecodingProperty(property, key, type, _):
-            if hasChildren {
+            if hasKodableErrorChildrenErrors {
                 return "Error on property named \"\(property)\" with key \"\(key)\" of type \"\(type)\""
             } else {
-                return "Could not decode type \(type). Failed to decode property \(property) for key \(key)"
+                return "Could not decode type \"\(type)\". Failed to decode property \"\(property)\" for key \"\(key)\""
             }
         case let .failedDecodingType(type, _):
-            return hasChildren ? "Failure on \"\(type)\"" : "Could not decode an instance of \(type):"
+            return hasKodableErrorChildrenErrors ? "Failure on \"\(type)\"" : "Could not decode an instance of \"\(type)\""
         }
     }
 }
