@@ -895,12 +895,6 @@ final class KodableTests: XCTestCase {
         assert(try failableExpression(firstError(), withFallback: secondError()), throws: FailableExpressionWithFallbackError(main: FirstError(), fallback: SecondError()))
     }
 
-    func testKodableErrorNode() throws {
-        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "", key: "").description, "* failing type \(String.self)")
-        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "property", key: "property").description, "* failing property: \"\("property")\" of type \(String.self)")
-        XCTAssertEqual(KodableError.Node(type: String.self, propertyName: "dateCreated", key: "created_at").description, "* failing property: \"\("dateCreated")\"(key: \"\("created_at")\") of type \(String.self)")
-    }
-
     func testBetterDecodingError() {
         let context: DecodingError.Context = .init(codingPath: [], debugDescription: "", underlyingError: nil)
         // Any Error
@@ -936,38 +930,17 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(KodableError.wrappedError(DummyError()).errorDescription, "Cause: \(BetterDecodingError(with: DummyError()).description)")
         XCTAssertEqual(KodableError.dataNotFound.errorDescription, "Missing key (or null value) for property marked as required.")
         XCTAssertEqual(KodableError.failedToParseDate(source: "30-01-2022").errorDescription, "Could not parse Date from this value: \("30-01-2022")")
-        XCTAssertEqual(KodableError.validationFailed(type: String.self, property: "property", parsedValue: 1).errorDescription, "Could not decode type \(String.self). Validation for the property \("property") failed. The parsed value was \(1)")
-        XCTAssertEqual(KodableError.failedDecodingProperty(property: "property", key: "key", type: String.self, underlyingError: .wrappedError(DummyError())).errorDescription, "Could not decode type \(String.self). Failed to decode property \("property") for key \("key")")
-        XCTAssertEqual(KodableError.failedDecodingType(type: String.self, underlyingError: .wrappedError(DummyError())).errorDescription, "Could not decode an instance of \(String.self):\n")
-    }
-
-    func testKodableInternalNode() {
-        let validationFailed = KodableError.validationFailed(type: Date.self, property: "property", parsedValue: 1)
-        let failedToParseDate = KodableError.failedToParseDate(source: "29-12-2022")
-        let failedDecodingType = KodableError.failedDecodingType(type: Date.self, underlyingError: failedToParseDate)
-        // Test Failed Decoding Type
-        XCTAssertEqual(failedDecodingType.nextIteration?.0, failedToParseDate.nextIteration?.0)
-        XCTAssertEqual(failedDecodingType.nextIteration?.1, failedToParseDate.nextIteration?.1)
-        // Test Failed Decoding Property
-        let failedDecodingProperty = KodableError.failedDecodingProperty(property: "property", key: "key", type: Date.self, underlyingError: failedToParseDate)
-        XCTAssertEqual(failedDecodingProperty.nextIteration?.0, KodableError.Node(type: Date.self, propertyName: "property", key: "key"))
-        XCTAssertEqual(failedDecodingProperty.nextIteration?.1, failedToParseDate)
-        // Test Data Not Found
-        XCTAssertNil(KodableError.dataNotFound.nextIteration)
-        // Test Failed To Parse Date
-        XCTAssertNil(failedToParseDate.nextIteration)
-        // Test Validation Failed
-        XCTAssertNil(validationFailed.nextIteration)
-
-        // Test Wrapped Error
-        // Nil for non Kodable Errors
-        XCTAssertNil(KodableError.wrappedError(DummyError()).nextIteration)
-        // Passthrough for all Kodable Errors but failedDecodingType
-        XCTAssertEqual(KodableError.wrappedError(failedToParseDate).nextIteration?.0, failedToParseDate.nextIteration?.0)
-        XCTAssertEqual(KodableError.wrappedError(failedToParseDate).nextIteration?.1, failedToParseDate.nextIteration?.1)
-        // Special Handling for failedDecodingType
-        XCTAssertEqual(KodableError.wrappedError(failedDecodingType).nextIteration?.0, KodableError.Node(type: Date.self, propertyName: "", key: ""))
-        XCTAssertEqual(KodableError.wrappedError(failedDecodingType).nextIteration?.1, failedToParseDate)
+        XCTAssertEqual(KodableError.validationFailed(type: String.self, property: "property", parsedValue: 1).errorDescription, "Validation failed for property \"\("property")\" on type \"\(String.self)\". The parsed value was \(1)")
+        // As last node on the tree
+        let failedPropertyEndNode = KodableError.failedDecodingProperty(property: "property", key: "key", type: String.self, underlyingError: .wrappedError(DummyError()))
+        XCTAssertEqual(failedPropertyEndNode.errorDescription, "Could not decode type \"\(String.self)\". Failed to decode property \"\("property")\" for key \"\("key")\"")
+        let failedTypeEndNode = KodableError.failedDecodingType(type: String.self, underlyingError: .wrappedError(DummyError()))
+        XCTAssertEqual(failedTypeEndNode.errorDescription, "Could not decode an instance of \"\(String.self)\"")
+        // With underlying error
+        let failedProperty = KodableError.failedDecodingProperty(property: "property", key: "key", type: String.self, underlyingError: failedPropertyEndNode).errorDescription
+        XCTAssertEqual(failedProperty, "Error on property named \"\("property")\" with key \"\("key")\" of type \"\(String.self)\"")
+        let failedType = KodableError.failedDecodingType(type: String.self, underlyingError: failedTypeEndNode).errorDescription
+        XCTAssertEqual(failedType, "Failure on \"\(String.self)\"")
     }
 
     // MARK: - Utilities

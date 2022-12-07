@@ -19,72 +19,57 @@ public enum KodableError: Error {
 
 extension KodableError: CustomStringConvertible {
     public var description: String {
-        iterateOverErrors(nextError: self)
+        stringErrorTree(for: self)
     }
 
-    internal var nextIteration: (Node, KodableError)? {
+    internal func stringErrorTree(for error: KodableError?, initial: String = "", tabs: Int = 0) -> String {
+        if error == nil { return initial }
+        let message = initial + String(repeating: "   ", count: tabs) + "\(error?.errorDescription ?? "")\n"
+        return stringErrorTree(for: error?.nextWrapper, initial: message, tabs: tabs + 1)
+    }
+
+    internal var nextWrapper: KodableError? {
         switch self {
-        case let .failedDecodingProperty(property, key, type, underlyingError):
-            return (Node(type: type, propertyName: property, key: key), underlyingError)
+        case let .failedDecodingProperty(_, _, _, underlyingError):
+            return underlyingError
         case let .failedDecodingType(_, underlyingError):
-            return underlyingError.nextIteration
+            return underlyingError
         case .failedToParseDate, .validationFailed, .dataNotFound:
             return nil
         case let .wrappedError(error):
             guard let dekodingError = error as? KodableError else { return nil }
-            guard case let .failedDecodingType(type, underlyingError) = dekodingError else {
-                return dekodingError.nextIteration
-            }
-            return (Node(type: type, propertyName: "", key: ""), underlyingError)
+            return dekodingError
         }
     }
 
-    internal func iterateOverErrors(initial nodes: [Node] = [], nextError: KodableError) -> String {
-        let initialString = nodes.isEmpty ? "\(nextError.errorDescription)" : "" // Nodes being empty means it is the root error
-        guard let next = nextError.nextIteration else { return initialString + buildErrorMessage(nodes: nodes, error: nextError) }
-        return initialString + iterateOverErrors(initial: nodes + [next.0], nextError: next.1)
-    }
-
-    internal func buildErrorMessage(nodes: [Node], error: KodableError) -> String {
-        let spacing = "  "
-        var string = ""
-        for i in 0 ... nodes.count {
-            let spaces = Array(repeating: spacing, count: i + 1).joined(separator: "")
-            if i == nodes.count {
-                string += "\n\(error.errorDescription)\n\n"
-            } else {
-                string += "\(spaces)\(nodes[i])\n"
-            }
+    internal var hasKodableErrorChildrenErrors: Bool {
+        switch nextWrapper {
+        case nil: return false
+        case let .wrappedError(error):
+            guard let _ = error as? KodableError else { return false }
+            return true
+        default: return true
         }
-        return string
     }
 
     internal var errorDescription: String {
         switch self {
         case let .wrappedError(error):
-            return "Cause: \(BetterDecodingError(with: error).description)"
+            return hasKodableErrorChildrenErrors ? "" : "Cause: \(BetterDecodingError(with: error).description)"
         case .dataNotFound:
             return "Missing key (or null value) for property marked as required."
         case let .failedToParseDate(source):
             return "Could not parse Date from this value: \(source)"
         case let .validationFailed(type, property, parsedValue):
-            return "Could not decode type \(type). Validation for the property \(property) failed. The parsed value was \(parsedValue)"
+            return "Validation failed for property \"\(property)\" on type \"\(type)\". The parsed value was \(parsedValue)"
         case let .failedDecodingProperty(property, key, type, _):
-            return "Could not decode type \(type). Failed to decode property \(property) for key \(key)"
+            if hasKodableErrorChildrenErrors {
+                return "Error on property named \"\(property)\" with key \"\(key)\" of type \"\(type)\""
+            } else {
+                return "Could not decode type \"\(type)\". Failed to decode property \"\(property)\" for key \"\(key)\""
+            }
         case let .failedDecodingType(type, _):
-            return "Could not decode an instance of \(type):\n"
-        }
-    }
-
-    internal struct Node: CustomStringConvertible {
-        let type: Any
-        let propertyName: String
-        let key: String
-
-        var description: String {
-            guard !propertyName.isEmpty else { return "* failing type \(type)" }
-            guard propertyName != key else { return "* failing property: \"\(propertyName)\" of type \(type)" }
-            return "* failing property: \"\(propertyName)\"(key: \"\(key)\") of type \(type)"
+            return hasKodableErrorChildrenErrors ? "Failure on \"\(type)\"" : "Could not decode an instance of \"\(type)\""
         }
     }
 }
