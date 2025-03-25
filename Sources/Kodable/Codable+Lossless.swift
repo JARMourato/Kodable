@@ -128,7 +128,9 @@ private extension Decodable {
 
 extension Decimal: LosslessStringConvertible {
     public init?(_ description: String) {
-        self.init(string: description.replacingOccurrences(of: ",", with: ""))
+        // Remove commas to support parsing strings with thousand separators
+        let sanitizedValue = description.replacingOccurrences(of: ",", with: "")
+        self.init(string: sanitizedValue)
     }
 }
 
