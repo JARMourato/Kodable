@@ -461,6 +461,24 @@ final class KodableTests: XCTestCase {
         assert(try MissingString.decodeJSON(from: KodableTests.json), throws: missingStringThrownError)
     }
 
+    func testLosslessDecimalDecoding() {
+        struct Decimals: Kodable {
+            @Coding("string_plain_decimal", .lossless) var plainDecimal: Decimal
+            @Coding("string_sanitized_decimal", .lossless) var sanitizedDecimal: Decimal?
+            @Coding("invalid_decimal", .lossless) var invalidDecimal: Decimal?
+        }
+
+        do {
+            let value = try Decimals.decodeJSON(from: KodableTests.json)
+
+            XCTAssertEqual(value.plainDecimal, 1234.5678)
+            XCTAssertEqual(value.sanitizedDecimal, Decimal(string: "1234567.89"))
+            XCTAssertEqual(value.invalidDecimal, nil)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+    }
+
     func testOptionalLosslessDecodableConformance() {
         let nonOptional: String? = "Non Optional"
         let optional: String? = .none
@@ -1023,6 +1041,9 @@ final class KodableTests: XCTestCase {
         "people_optional": [
             ["id": 3, "name": "pete"], ["id": 1, "name": nil], ["id": 2, "name": "joe"],
         ],
+        "string_plain_decimal": "1234.5678",
+        "string_sanitized_decimal": "1,234,567.89",
+        "invalid_decimal": "no7,4,dec1m4l"
     ]
 
     static var json: Data {

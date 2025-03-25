@@ -110,8 +110,9 @@ private extension Decodable {
             decode(UInt8.self),
             decode(UInt16.self),
             decode(UInt64.self),
+            decode(Decimal.self),
             decode(Double.self),
-            decode(Float.self),
+            decode(Float.self)
         ]
 
         return types.lazy.compactMap { $0(decoder) }.first
@@ -122,6 +123,12 @@ private extension Decodable {
             return { _ in nil }
         }
         return { (try? Int(from: $0)).flatMap { Bool(exactly: NSNumber(value: $0)) } }
+    }
+}
+
+extension Decimal: LosslessStringConvertible {
+    public init?(_ description: String) {
+        self.init(string: description.replacingOccurrences(of: ",", with: ""))
     }
 }
 
