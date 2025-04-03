@@ -3,19 +3,19 @@ import Foundation
 // MARK: - AnyCodingKey
 
 /// Enables using a string as key when decoding/encoding an instance of `Codable`
-struct AnyCodingKey: CodingKey {
-    var stringValue: String
-    var intValue: Int?
+public struct AnyCodingKey: CodingKey {
+    public var stringValue: String
+    public var intValue: Int?
 
-    init(_ key: String) { stringValue = key }
-    init?(stringValue: String) { self.stringValue = stringValue }
-    init?(intValue: Int) { (self.intValue, stringValue) = (intValue, String(intValue)) }
+    public init(_ key: String) { stringValue = key }
+    public init?(stringValue: String) { self.stringValue = stringValue }
+    public init?(intValue: Int) { (self.intValue, stringValue) = (intValue, String(intValue)) }
 }
 
 // MARK: Typealiases
 
 // A container used for decoding keyedBy `AnyCodingKey
-typealias DecodeContainer = KeyedDecodingContainer<AnyCodingKey>
+public typealias DecodeContainer = KeyedDecodingContainer<AnyCodingKey>
 // A container used for encoding keyedBy `AnyCodingKey
 typealias EncodeContainer = KeyedEncodingContainer<AnyCodingKey>
 
@@ -59,7 +59,7 @@ extension Encoder {
     }
 }
 
-extension Decodable {
+public extension Decodable {
     static func decodeIfPresent(from container: DecodeContainer, with stringKey: String) throws -> Self? {
         try container.decodeIfPresent(Self.self, forKey: AnyCodingKey(stringKey))
     }

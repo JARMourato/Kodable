@@ -1,4 +1,5 @@
 import Foundation
+import Runtime
 
 // MARK: - Extended Codable Protocols
 
@@ -18,6 +19,7 @@ protocol EncodableProperty {
 public protocol Dekodable: Decodable {
     init()
     mutating func decode(from decoder: Decoder) throws
+    mutating func customDecode(from decoder: Decoder, property: PropertyInfo) throws -> Bool
 }
 
 public extension Dekodable {
@@ -43,9 +45,18 @@ public extension Dekodable {
                     try decodeExtendedProperty(decodable, with: property.name, from: container)
                 } else {
                     // Ignores all properties that don't conform to `Decodable`
-                    guard let decodable = property.type as? Decodable.Type else { return }
-                    let value = try decodable.decodeIfPresent(from: container, with: property.name) as Any
-                    try property.set(value: value, on: &self)
+                    
+                    var name = property.name
+                    if name.hasPrefix("_") {
+                        name.removeFirst()
+                    }
+                    let key = try AnyCodingKey(stringValue: name)
+                    let superDecoder = try container.superDecoder(forKey: key!)
+                    if try customDecode(from: superDecoder, property: property) == false {
+                        guard let decodable = property.type as? Decodable.Type else { return }
+                        let value = try decodable.decodeIfPresent(from: container, with: property.name) as Any
+                        try property.set(value: value, on: &self)
+                    }
                 }
             }
         } catch {
