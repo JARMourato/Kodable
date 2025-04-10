@@ -14,7 +14,7 @@ public protocol KodableTransform {
 
 // MARK: Kodable Transformable Property Wrapper
 
-@propertyWrapper open class KodableTransformable<T: KodableTransform>: Codable {
+@propertyWrapper public struct KodableTransformable<T: KodableTransform>: Codable {
     internal var transformer = T()
     internal var _value: T.To?
     private let options: [KodableOption<TargetType>]
@@ -30,7 +30,7 @@ public protocol KodableTransform {
         return _value as! U
     }
 
-    private func setValue(_ newValue: TargetType, for propertyName: String = "") throws {
+    private mutating func setValue(_ newValue: TargetType, for propertyName: String = "") throws {
         let finalValue = overrideRawValueIfNeeded(newValue) // 1: Go through all value modifiers and override it if needed
         let valueIsValid = validate(finalValue) // 2: Go through the validators and check that none fails
 
@@ -43,12 +43,22 @@ public protocol KodableTransform {
 
     /// - Note: this might crash if an instance of a type uses the property wrapper with a non-optional type
     ///         and it can't be decoded, and a default value wasn't provided.
-    open var wrappedValue: TargetType {
-        get { getValue(TargetType.self) } // This is needed so that we can return TargetType as the correct type
-        set { try? setValue(newValue) }
+    public var wrappedValue: TargetType {
+        get {
+            return getValue(TargetType.self)
+        }
+        mutating set {
+            try? setValue(newValue)
+        }
     }
 
     // MARK: Public Initializers
+
+    public init(wrappedValue: TargetType) {
+        self.key = nil
+        self.options = []
+        self._value = wrappedValue
+    }
 
     public init() {
         options = []
@@ -63,7 +73,7 @@ public protocol KodableTransform {
     // MARK: Codable Conformance
 
     /// All custom behavior is lost when the `Decodable` initializer is used
-    public required init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let decodedValue = try T.From(from: decoder)
         _value = try transformer.transformFromJSON(value: decodedValue)
         options = []
@@ -95,7 +105,7 @@ extension KodableTransformable {
 extension KodableTransformable: DecodableProperty where OriginalType: Decodable {
     // MARK: Main ExtendedTransformable decoding logic
 
-    func decodeValueForProperty(with propertyName: String, from container: DecodeContainer) throws {
+    mutating func decodeValueForProperty(with propertyName: String, from container: DecodeContainer) throws {
         let fromValue: OriginalType
         let originalTypeIsOptional = try Reflection.typeInformation(of: OriginalType.self).kind == .optional
         let targetTypeIsOptional = try Reflection.typeInformation(of: TargetType.self).kind == .optional

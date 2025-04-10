@@ -5,7 +5,7 @@ import Foundation
 // MARK: Extended Codable properties
 
 protocol DecodableProperty {
-    func decodeValueForProperty(with propertyName: String, from container: DecodeContainer) throws
+    mutating func decodeValueForProperty(with propertyName: String, from container: DecodeContainer) throws
 }
 
 protocol EncodableProperty {
@@ -39,8 +39,9 @@ public extension Dekodable {
             let currentType = try Reflection.typeInformation(of: type(of: self))
 
             for property in currentType.properties {
-                if let decodable = try? property.get(from: self) as? DecodableProperty {
-                    try decodeExtendedProperty(decodable, with: property.name, from: container)
+                if var decodable = try? property.get(from: self) as? DecodableProperty {
+                    try decodeExtendedProperty(&decodable, with: property.name, from: container)
+                    try property.set(value: decodable, on: &self)
                 } else {
                     // Ignores all properties that don't conform to `Decodable`
                     guard let decodable = property.type as? Decodable.Type else { return }
@@ -53,7 +54,7 @@ public extension Dekodable {
         }
     }
 
-    private func decodeExtendedProperty(_ property: DecodableProperty, with propertyName: String, from container: DecodeContainer) throws {
+    private mutating func decodeExtendedProperty(_ property: inout DecodableProperty, with propertyName: String, from container: DecodeContainer) throws {
         var name = propertyName
         if name.hasPrefix("_") { // Property wrappers start by "_", hence we remove that
             name = String(name.dropFirst())

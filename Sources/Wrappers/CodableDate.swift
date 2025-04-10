@@ -6,33 +6,39 @@ import Foundation
 
 /// A helper wrapper to facilitate encoding/decoding dates. If no strategy is passed, iso8601 is used by default.
 /// The types that use this helper need to conform to `Kodable`  to be able to be correctly decoded/encoded.
-@propertyWrapper public final class CodableDate<T: DateProtocol>: KodableTransformable<DateTransformer<T>> {
-    override public var wrappedValue: T {
-        get { super.wrappedValue }
-        set { super.wrappedValue = newValue }
+@propertyWrapper public struct CodableDate<T: DateProtocol>: Codable {
+    private var inner: KodableTransformable<DateTransformer<T>>
+
+    public var wrappedValue: T {
+        get { inner.wrappedValue }
+        set { inner.wrappedValue = newValue }
     }
 
-    // MARK: Public Initializers
+    public var projectedValue: Self { self }
 
-    override public init() {
-        super.init()
+    public init() {
+        self.inner = KodableTransformable()
     }
 
-    public init(_ options: KodableOption<TargetType>..., default value: T? = nil) {
-        super.init(key: nil, options: options, defaultValue: value)
+    public init(_ options: KodableOption<T>..., default value: T? = nil) {
+        self.inner = KodableTransformable(options: options, defaultValue: value)
     }
 
-    public init(_ key: String, _ options: KodableOption<TargetType>..., default value: T? = nil) {
-        super.init(key: key, options: options, defaultValue: value)
+    public init(_ key: String, _ options: KodableOption<T>..., default value: T? = nil) {
+        self.inner = KodableTransformable(key: key, options: options, defaultValue: value)
     }
 
-    public init(_ strategy: DateCodingStrategy, _ key: String? = nil, _ options: KodableOption<TargetType>..., default value: T? = nil) {
-        super.init(key: key, options: options, defaultValue: value)
-        transformer.strategy = strategy
+    public init(_ strategy: DateCodingStrategy, _ key: String? = nil, _ options: KodableOption<T>..., default value: T? = nil) {
+        self.inner = KodableTransformable(key: key, options: options, defaultValue: value)
+        inner.transformer.strategy = strategy
     }
 
-    public required init(from decoder: Decoder) throws {
-        try super.init(from: decoder)
+    public init(from decoder: Decoder) throws {
+        self.inner = try KodableTransformable(from: decoder)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        try inner.encode(to: encoder)
     }
 }
 
@@ -142,6 +148,22 @@ public enum DateCodingStrategy {
 public protocol DateConvertible {
     func date(from value: String) -> Date?
     func string(from date: Date) -> String
+}
+
+// MARK: - Decoding Property
+
+extension CodableDate: DecodableProperty where T: Decodable {
+    mutating func decodeValueForProperty(with propertyName: String, from container: DecodeContainer) throws {
+        try inner.decodeValueForProperty(with: propertyName, from: container)
+    }
+}
+
+// MARK: - Encoding Property
+
+extension CodableDate: EncodableProperty where T: Encodable {
+    func encodeValueFromProperty(with propertyName: String, to container: inout EncodeContainer) throws {
+        try inner.encodeValueFromProperty(with: propertyName, to: &container)
+    }
 }
 
 // MARK: Equatable Conformance

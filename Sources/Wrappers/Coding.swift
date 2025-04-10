@@ -4,20 +4,32 @@ import Foundation
 
 /// A wrapper that helps modifying the decoding/encoding behavior.  The types that use this helper need to
 /// conform to `Kodable`  to be able to be correctly decoded/encoded.
-@propertyWrapper public final class Coding<T: Codable>: KodableTransformable<Passthrough<T>> {
-    override public var wrappedValue: T {
-        get { super.wrappedValue }
-        set { super.wrappedValue = newValue }
+@propertyWrapper public struct Coding<T: Codable>: Codable {
+    private var inner: KodableTransformable<Passthrough<T>>
+
+    public var wrappedValue: T {
+        get { inner.wrappedValue }
+        set { inner.wrappedValue = newValue }
     }
 
-    public convenience init(_ options: KodableOption<TargetType>..., default value: TargetType? = nil) {
-        self.init(key: nil, options: options, defaultValue: value)
+    public init() {
+        self.inner = KodableTransformable()
     }
 
-    /// - Parameters:
-    ///   - key: Customize the string key used to decode the value. Nested values are supported through the usage of the `.` notation.
-    public convenience init(_ key: String, _ options: KodableOption<TargetType>..., default value: TargetType? = nil) {
-        self.init(key: key, options: options, defaultValue: value)
+    public init(_ options: KodableOption<T>..., default value: T? = nil) {
+        self.inner = KodableTransformable(options: options, defaultValue: value)
+    }
+
+    public init(_ key: String, _ options: KodableOption<T>..., default value: T? = nil) {
+        self.inner = KodableTransformable(key: key, options: options, defaultValue: value)
+    }
+
+    public init(from decoder: Decoder) throws {
+        self.inner = try KodableTransformable(from: decoder)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        try inner.encode(to: encoder)
     }
 }
 
@@ -29,6 +41,22 @@ public struct Passthrough<T: Codable>: KodableTransform {
     public func transformFromJSON(value: T) -> T { value }
     public func transformToJSON(value: T) -> T { value }
     public init() {}
+}
+
+// MARK: - Decoding Property
+
+extension Coding: DecodableProperty where T: Decodable {
+    mutating func decodeValueForProperty(with propertyName: String, from container: DecodeContainer) throws {
+        try inner.decodeValueForProperty(with: propertyName, from: container)
+    }
+}
+
+// MARK: - Encoding Property
+
+extension Coding: EncodableProperty where T: Encodable {
+    func encodeValueFromProperty(with propertyName: String, to container: inout EncodeContainer) throws {
+        try inner.encodeValueFromProperty(with: propertyName, to: &container)
+    }
 }
 
 // MARK: Equatable Conformance
