@@ -19,7 +19,7 @@ extension FailableExpressionWithFallbackError: LocalizedError {
     }
 }
 
-internal func failableExpression<T>(_ expression: @autoclosure () throws -> T, withFallback fallback: @autoclosure () throws -> T) throws -> T {
+func failableExpression<T>(_ expression: @autoclosure () throws -> T, withFallback fallback: @autoclosure () throws -> T) throws -> T {
     do {
         return try expression()
     } catch let firstError {

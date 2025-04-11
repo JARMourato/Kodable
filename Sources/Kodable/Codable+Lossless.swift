@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - LosslessDecodable
 
-public typealias LosslessDecodable = LosslessStringConvertible & Decodable
+public typealias LosslessDecodable = Decodable & LosslessStringConvertible
 
 // MARK: Helper types to decode lossless values
 
@@ -43,7 +43,7 @@ struct LosslessDecodableArray<Element: Decodable>: Decodable {
     }
 }
 
-internal struct Corrupted: Error {}
+struct Corrupted: Error {}
 
 // MARK: Helper type to decode lossy arrays
 
