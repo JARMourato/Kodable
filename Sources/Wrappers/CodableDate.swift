@@ -17,24 +17,24 @@ import Foundation
     public var projectedValue: Self { self }
 
     public init() {
-        self.inner = KodableTransformable()
+        inner = KodableTransformable()
     }
 
     public init(_ options: KodableOption<T>..., default value: T? = nil) {
-        self.inner = KodableTransformable(options: options, defaultValue: value)
+        inner = KodableTransformable(options: options, defaultValue: value)
     }
 
     public init(_ key: String, _ options: KodableOption<T>..., default value: T? = nil) {
-        self.inner = KodableTransformable(key: key, options: options, defaultValue: value)
+        inner = KodableTransformable(key: key, options: options, defaultValue: value)
     }
 
     public init(_ strategy: DateCodingStrategy, _ key: String? = nil, _ options: KodableOption<T>..., default value: T? = nil) {
-        self.inner = KodableTransformable(key: key, options: options, defaultValue: value)
+        inner = KodableTransformable(key: key, options: options, defaultValue: value)
         inner.transformer.strategy = strategy
     }
 
     public init(from decoder: Decoder) throws {
-        self.inner = try KodableTransformable(from: decoder)
+        inner = try KodableTransformable(from: decoder)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -45,7 +45,7 @@ import Foundation
 // MARK: Conforming to CodableTransform
 
 public struct DateTransformer<T: DateProtocol>: KodableTransform {
-    internal var strategy: DateCodingStrategy = .iso8601
+    var strategy: DateCodingStrategy = .iso8601
 
     public func transformFromJSON(value: String?) throws -> T {
         let dateValue = strategy.date(from: value ?? "")

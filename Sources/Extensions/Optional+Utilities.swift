@@ -21,7 +21,7 @@ extension Optional: Flattenable {
 
 // MARK: Verify whether a type is optional
 
-internal protocol OptionalProtocol {
+protocol OptionalProtocol {
     var isNil: Bool { get }
 }
 

@@ -15,8 +15,8 @@ public protocol KodableTransform {
 // MARK: Kodable Transformable Property Wrapper
 
 @propertyWrapper public struct KodableTransformable<T: KodableTransform>: Codable {
-    internal var transformer = T()
-    internal var _value: T.To?
+    var transformer = T()
+    var _value: T.To?
     private let options: [KodableOption<TargetType>]
     public private(set) var key: String?
 
@@ -45,7 +45,7 @@ public protocol KodableTransform {
     ///         and it can't be decoded, and a default value wasn't provided.
     public var wrappedValue: TargetType {
         get {
-            return getValue(TargetType.self)
+            getValue(TargetType.self)
         }
         mutating set {
             try? setValue(newValue)
@@ -55,9 +55,9 @@ public protocol KodableTransform {
     // MARK: Public Initializers
 
     public init(wrappedValue: TargetType) {
-        self.key = nil
-        self.options = []
-        self._value = wrappedValue
+        key = nil
+        options = []
+        _value = wrappedValue
     }
 
     public init() {
@@ -91,7 +91,9 @@ public protocol KodableTransform {
 extension KodableTransformable {
     private func overrideRawValueIfNeeded(_ value: TargetType) -> TargetType {
         var modifiedCopy = value
-        for modifier in modifiers { modifiedCopy = modifier.overrideValue(modifiedCopy) }
+        for modifier in modifiers {
+            modifiedCopy = modifier.overrideValue(modifiedCopy)
+        }
         return modifiedCopy
     }
 

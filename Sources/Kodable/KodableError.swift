@@ -22,13 +22,13 @@ extension KodableError: CustomStringConvertible {
         stringErrorTree(for: self)
     }
 
-    internal func stringErrorTree(for error: KodableError?, initial: String = "", tabs: Int = 0) -> String {
+    func stringErrorTree(for error: KodableError?, initial: String = "", tabs: Int = 0) -> String {
         if error == nil { return initial }
         let message = initial + String(repeating: "   ", count: tabs) + "\(error?.errorDescription ?? "")\n"
         return stringErrorTree(for: error?.nextWrapper, initial: message, tabs: tabs + 1)
     }
 
-    internal var nextWrapper: KodableError? {
+    var nextWrapper: KodableError? {
         switch self {
         case let .failedDecodingProperty(_, _, _, underlyingError):
             return underlyingError
@@ -42,7 +42,7 @@ extension KodableError: CustomStringConvertible {
         }
     }
 
-    internal var hasKodableErrorChildrenErrors: Bool {
+    var hasKodableErrorChildrenErrors: Bool {
         switch nextWrapper {
         case nil: return false
         case let .wrappedError(error):
@@ -52,7 +52,7 @@ extension KodableError: CustomStringConvertible {
         }
     }
 
-    internal var errorDescription: String {
+    var errorDescription: String {
         switch self {
         case let .wrappedError(error):
             return hasKodableErrorChildrenErrors ? "" : "Cause: \(BetterDecodingError(with: error).description)"
