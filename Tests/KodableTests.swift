@@ -229,7 +229,7 @@ final class KodableTests: XCTestCase {
         }
 
         do {
-            let decoded = try Basic.decodeJSON(from: KodableTests.json)
+            var decoded = try Basic.decodeJSON(from: KodableTests.json)
 
             XCTAssertEqual(decoded.basicTitle, "Create New Project")
             XCTAssertEqual(decoded.width, 400)
@@ -681,7 +681,7 @@ final class KodableTests: XCTestCase {
             @Coding var name: String
 
             static func with(name: String) -> User {
-                let user = User()
+                var user = User()
                 user.name = name
                 return user
             }
@@ -820,7 +820,7 @@ final class KodableTests: XCTestCase {
             }
 
             static func now() -> RFCDate {
-                let now = RFCDate()
+                var now = RFCDate()
                 now.date = Date()
                 return now
             }
@@ -942,6 +942,81 @@ final class KodableTests: XCTestCase {
         let failedType = KodableError.failedDecodingType(type: String.self, underlyingError: failedTypeEndNode).errorDescription
         XCTAssertEqual(failedType, "Failure on \"\(String.self)\"")
     }
+
+    // MARK: - Mutability tests
+
+    func testCodingWrapperCopyBehavior() {
+        struct Wrapper: Kodable {
+            @Coding var name: String
+        }
+
+        var original = Wrapper()
+        original.name = "Original"
+
+        var copy = original
+        copy.name = "Changed"
+
+        XCTAssertEqual(original.name, "Original")
+        XCTAssertEqual(copy.name, "Changed")
+    }
+
+    func testCodingWrapperNoSharedStateAcrossInstances() {
+        struct Wrapper: Kodable {
+            @Coding var array: [String]
+        }
+
+        var a = Wrapper()
+        a.array = ["A"]
+
+        var b = Wrapper()
+        b.array = ["B"]
+
+        XCTAssertEqual(a.array, ["A"])
+        XCTAssertEqual(b.array, ["B"])
+    }
+
+    func testValueSemanticsConsistency() throws {
+        struct User: Kodable {
+            @Coding var name: String
+        }
+
+        let original = try User.decodeJSON(from: #"{"name":"John"}"#.data(using: .utf8)!)
+        var modified = original
+        modified.name = "Pete"
+
+        let reencoded = try modified.encodeJSON()
+        let decoded = try User.decodeJSON(from: reencoded)
+
+        XCTAssertEqual(decoded.name, "Pete")
+        XCTAssertEqual(original.name, "John")
+    }
+
+    func testWrappedValueReflectsInInternalValue() {
+        struct Wrapper: Kodable {
+            @Coding var id: Int
+        }
+
+        var user = Wrapper()
+        user.id = 42
+
+        let userMirror = Mirror(reflecting: user)
+        guard let codingStorage = userMirror.children.first(where: { $0.label == "_id" })?.value else {
+            XCTFail("Could not find _id")
+            return
+        }
+
+        let codingMirror = Mirror(reflecting: codingStorage)
+        guard let inner = codingMirror.children.first(where: { $0.label == "inner" })?.value else {
+            XCTFail("Could not find inner in Coding")
+            return
+        }
+
+        let innerMirror = Mirror(reflecting: inner)
+        let value = innerMirror.children.first(where: { $0.label == "_value" })?.value as? Int
+
+        XCTAssertEqual(value, 42)
+    }
+
 
     // MARK: - Utilities
 
