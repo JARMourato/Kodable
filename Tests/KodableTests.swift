@@ -468,6 +468,27 @@ final class KodableTests: XCTestCase {
         XCTAssertEqual(optional.description, "Empty Optional<\(String(describing: String.self))>")
     }
 
+    // MARK: - Thread Safety Tests
+
+    func test_typeInformation_concurrentAccess_shouldNotCrash() {
+        let iterations = 1000
+        let dispatchGroup = DispatchGroup()
+        let types: [Any.Type] = [String.self, Int.self, Double.self, Bool.self, Data.self]
+
+        for _ in 0..<iterations {
+            for type in types {
+                dispatchGroup.enter()
+                DispatchQueue.global().async {
+                    _ = try? Reflection.typeInformation(of: type)
+                    dispatchGroup.leave()
+                }
+            }
+        }
+
+        let result = dispatchGroup.wait(timeout: .now() + 30)
+        XCTAssertEqual(result, .success, "Concurrent access should complete without deadlock")
+    }
+
     // MARK: - Collection Tests
 
     func testDictionary() {
