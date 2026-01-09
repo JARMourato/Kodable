@@ -475,7 +475,7 @@ final class KodableTests: XCTestCase {
         let dispatchGroup = DispatchGroup()
         let types: [Any.Type] = [String.self, Int.self, Double.self, Bool.self, Data.self]
 
-        for _ in 0..<iterations {
+        for _ in 0 ..< iterations {
             for type in types {
                 dispatchGroup.enter()
                 DispatchQueue.global().async {
