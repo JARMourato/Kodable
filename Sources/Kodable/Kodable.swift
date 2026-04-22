@@ -69,6 +69,7 @@ public extension Dekodable {
 public protocol Enkodable: Encodable {}
 
 public extension Enkodable {
+
     // MARK: Main Encoding Logic
 
     func encode(to encoder: Encoder) throws {

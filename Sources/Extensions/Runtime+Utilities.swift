@@ -38,9 +38,17 @@ public enum Reflection {
 extension Reflection {
     private struct HashedType: Hashable {
         private var hashKey: Int
-        init(_ type: Any.Type) { hashKey = unsafeBitCast(type, to: Int.self) }
-        func hash(into hasher: inout Hasher) { hasher.combine(hashKey) }
-        static func == (lhs: HashedType, rhs: HashedType) -> Bool { lhs.hashValue == rhs.hashValue }
+        init(_ type: Any.Type) {
+            hashKey = unsafeBitCast(type, to: Int.self)
+        }
+
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(hashKey)
+        }
+
+        static func == (lhs: HashedType, rhs: HashedType) -> Bool {
+            lhs.hashValue == rhs.hashValue
+        }
     }
 
     private static let cacheLock = NSLock()

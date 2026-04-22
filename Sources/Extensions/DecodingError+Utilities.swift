@@ -2,7 +2,7 @@
 
 import Foundation
 
-// Borrowed from here https://gist.github.com/nunogoncalves/4852077f4e576872f72b70d9e79942f3 🙌🏻
+/// Borrowed from here https://gist.github.com/nunogoncalves/4852077f4e576872f72b70d9e79942f3 🙌🏻
 enum BetterDecodingError: CustomStringConvertible {
     case dataCorrupted(_ message: String)
     case keyNotFound(_ message: String)

@@ -38,8 +38,14 @@ import Foundation
 /// The `Coding` wrapper is just a simpler version of the `KodableTransformable`. Therefore,
 /// this type exists so that `Coding` can inherit all the behavior from `KodableTransformable`.
 public struct Passthrough<T: Codable>: KodableTransform {
-    public func transformFromJSON(value: T) -> T { value }
-    public func transformToJSON(value: T) -> T { value }
+    public func transformFromJSON(value: T) -> T {
+        value
+    }
+
+    public func transformToJSON(value: T) -> T {
+        value
+    }
+
     public init() {}
 }
 

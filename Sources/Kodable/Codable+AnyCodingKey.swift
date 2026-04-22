@@ -7,16 +7,24 @@ struct AnyCodingKey: CodingKey {
     var stringValue: String
     var intValue: Int?
 
-    init(_ key: String) { stringValue = key }
-    init?(stringValue: String) { self.stringValue = stringValue }
-    init?(intValue: Int) { (self.intValue, stringValue) = (intValue, String(intValue)) }
+    init(_ key: String) {
+        stringValue = key
+    }
+
+    init?(stringValue: String) {
+        self.stringValue = stringValue
+    }
+
+    init?(intValue: Int) {
+        (self.intValue, stringValue) = (intValue, String(intValue))
+    }
 }
 
 // MARK: Typealiases
 
-// A container used for decoding keyedBy `AnyCodingKey
+/// A container used for decoding keyedBy `AnyCodingKey
 typealias DecodeContainer = KeyedDecodingContainer<AnyCodingKey>
-// A container used for encoding keyedBy `AnyCodingKey
+/// A container used for encoding keyedBy `AnyCodingKey
 typealias EncodeContainer = KeyedEncodingContainer<AnyCodingKey>
 
 // MARK: Helper Extensions
@@ -24,11 +32,11 @@ typealias EncodeContainer = KeyedEncodingContainer<AnyCodingKey>
 // A set of helper functions to hide away the API consumer the `AnyCodingKey` usage
 
 extension DecodeContainer {
-    func decode<T>(_ type: T.Type, with stringKey: String) throws -> T where T: Decodable {
+    func decode<T: Decodable>(_ type: T.Type, with stringKey: String) throws -> T {
         try decode(type, forKey: AnyCodingKey(stringKey))
     }
 
-    func decodeIfPresent<T>(_ type: T.Type, with stringKey: String) throws -> T? where T: Decodable {
+    func decodeIfPresent<T: Decodable>(_ type: T.Type, with stringKey: String) throws -> T? {
         try decodeIfPresent(type, forKey: AnyCodingKey(stringKey))
     }
 
@@ -38,7 +46,7 @@ extension DecodeContainer {
 }
 
 extension EncodeContainer {
-    mutating func encode<T>(_ value: T, with stringKey: String) throws where T: Encodable {
+    mutating func encode<T: Encodable>(_ value: T, with stringKey: String) throws {
         try encode(value, forKey: AnyCodingKey(stringKey))
     }
 

@@ -14,7 +14,9 @@ import Foundation
         set { inner.wrappedValue = newValue }
     }
 
-    public var projectedValue: Self { self }
+    public var projectedValue: Self {
+        self
+    }
 
     public init() {
         inner = KodableTransformable()
@@ -80,7 +82,8 @@ public enum DateCodingStrategy {
     /// Uses the iOS native `ISO8601DateFormatter`.
     case iso8601
     /// Uses the iOS native `ISO8601DateFormatter` with `DateFormatter.Options.withFractionalSeconds`.
-    /// - Note: If you pass a date with greater precision than milliseconds, it will truncate and parse up to milliseconds only. So "2021-08-30T18:35:19.209999Z" would end up being parsed as "2021-08-30T18:35:19.209Z".
+    /// - Note: If you pass a date with greater precision than milliseconds, it will truncate and parse up to milliseconds only. So "2021-08-30T18:35:19.209999Z" would end up
+    /// being parsed as "2021-08-30T18:35:19.209Z".
     case iso8601WithMillisecondPrecision
     /// Implements the RFC2822 date format: "EEE, d MMM y HH:mm:ss zzz"
     /// - SeeAlso: https://datatracker.ietf.org/doc/html/rfc2822

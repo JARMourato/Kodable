@@ -45,7 +45,9 @@ extension EncodeContainer: NestedKeyable {
 
 private struct NestedStringKey {
     let parts: [String.SubSequence]
-    var isEmpty: Bool { parts.isEmpty }
+    var isEmpty: Bool {
+        parts.isEmpty
+    }
 
     func topSegmentAndSubNestedKey() -> (top: String, nestedKey: NestedStringKey)? {
         guard !isEmpty else { return nil }
@@ -63,5 +65,7 @@ extension NestedStringKey {
 }
 
 extension NestedStringKey: CustomStringConvertible {
-    var description: String { parts.joined(separator: ".") }
+    var description: String {
+        parts.joined(separator: ".")
+    }
 }

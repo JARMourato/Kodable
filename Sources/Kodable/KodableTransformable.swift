@@ -105,6 +105,7 @@ extension KodableTransformable {
 // MARK: - Decoding Property
 
 extension KodableTransformable: DecodableProperty where OriginalType: Decodable {
+
     // MARK: Main ExtendedTransformable decoding logic
 
     mutating func decodeValueForProperty(with propertyName: String, from container: DecodeContainer) throws {
@@ -177,6 +178,7 @@ extension KodableTransformable: DecodableProperty where OriginalType: Decodable 
 // MARK: - Encoding Property
 
 extension KodableTransformable: EncodableProperty where OriginalType: Encodable {
+
     // MARK: Main ExtendedTransformable encoding logic
 
     func encodeValueFromProperty(with propertyName: String, to container: inout EncodeContainer) throws {

@@ -41,8 +41,13 @@ public struct KodableModifier<T> {
         validation = { _ in true }
     }
 
-    func validate(_ value: T) -> Bool { validation(value) }
-    func overrideValue(_ value: T) -> T { overrideValue(value) }
+    func validate(_ value: T) -> Bool {
+        validation(value)
+    }
+
+    func overrideValue(_ value: T) -> T {
+        overrideValue(value)
+    }
 }
 
 // MARK: - Helpers
