@@ -1,3 +1,10 @@
+# Paths
+excluded:
+  - Tests
+  - DerivedData
+  - .build
+
+# Thresholds
 cyclomatic_complexity: 12
 file_length: 200
 function_body_length: 80
@@ -5,11 +12,7 @@ function_parameter_count: 8
 line_length: 175
 type_body_length: 300
 
-excluded:
-  - Tests
-  - DerivedData
-  - .build
-
+# Disabled rules
 disabled_rules:
   - force_cast
   - trailing_comma

@@ -1,3 +1,17 @@
-# format options
-
+# Version
 --swiftversion 5.3
+
+# Format options
+--indent 4
+--indentcase false
+--trimwhitespace always
+--voidtype void
+--semicolons never
+--commas always
+--stripunusedargs closure-only
+--maxwidth 175
+
+# Rules
+--enable isEmpty
+--disable blankLinesAtStartOfScope
+--disable blankLinesAtEndOfScope
